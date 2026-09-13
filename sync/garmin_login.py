@@ -22,6 +22,7 @@ from garminconnect import Garmin  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 TOKEN_DIR = os.path.join(HERE, ".garmin_tokens")
+DEFAULT_EMAIL = "konstantin.hardinghaus@gmail.com"  # kein Geheimnis, nur der Login-Name
 
 
 def ask_mfa_code():
@@ -29,7 +30,7 @@ def ask_mfa_code():
 
 
 def main():
-    email = input("Garmin-Connect-Mailadresse: ").strip()
+    email = input(f"Garmin-Connect-Mailadresse [{DEFAULT_EMAIL}]: ").strip() or DEFAULT_EMAIL
     password = getpass.getpass("Garmin-Connect-Passwort (wird nicht angezeigt): ")
 
     os.makedirs(TOKEN_DIR, exist_ok=True)
