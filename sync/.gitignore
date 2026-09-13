@@ -3,5 +3,7 @@ cache/
 !page_data.example.json
 .venv/
 venv/
+.garmin_tokens/
 *.log
 .env
+__pycache__/

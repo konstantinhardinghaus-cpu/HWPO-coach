@@ -1,44 +1,92 @@
 # Trainingsanalyse — Sync & Build
 
-Baut `trainingsanalyse.html` aus rohen Garmin- und Apple-Health-Daten neu. Kein Abo,
-keine fremde Analyse-Schicht — die Formeln stehen unten und im Code.
+Baut `trainingsanalyse.html` aus rohen Garmin-Daten neu. Kein Abo, keine
+fremde Analyse-Schicht — die Formeln stehen unten und im Code.
 
-## Warum das kein normales Cron-Skript ist
+## Einmalige Einrichtung (bei dir lokal, nicht in einer Claude-Sitzung)
 
-Die Rohdaten kommen über den **Athletedata-MCP-Zugang**, der nur innerhalb einer
-Claude-Sitzung erreichbar ist (Garmin- und Apple-Health-Werkzeuge, siehe unten).
-Es gibt kein portables API-Token, das ein eigenständiges Python-Skript außerhalb
-von Claude verwenden könnte. Die "Automatisierung" ist deshalb eine wöchentliche
-**Routine**, die eine neue Claude-Sitzung anstößt; diese Sitzung ruft die
-Athletedata-Werkzeuge auf, cached die Rohantworten unter `sync/cache/` und führt
-danach `python3 sync/build_analysis.py` aus, um `trainingsanalyse.html` neu zu
-schreiben.
+```
+cd HWPO-coach
+python3 -m venv sync/.venv
+sync/.venv/bin/pip install --upgrade pip garminconnect
+sync/.venv/bin/python sync/garmin_login.py
+```
 
-## Ablauf, den eine Sitzung bei jedem Lauf durchgeht
+`garmin_login.py` fragt Mailadresse und Passwort ab (Passwort per `getpass`,
+wird nirgends gespeichert oder geloggt), meldet dich bei Garmin Connect an
+und legt einen Sitzungs-Token unter `sync/.garmin_tokens/` ab (git-ignoriert).
+Braucht ein echtes Terminal — läuft nicht headless, nicht aus einer
+Claude-Sitzung heraus.
 
-1. **Letzten Stand finden**: `sync/cache/state.json` liest `last_synced_date`.
-   Fehlt die Datei, ist es ein Erstlauf (siehe Schritt 1–2 im ursprünglichen
-   Chat-Verlauf für die volle 12-Monats-Historie).
-2. **Neue Aktivitäten holen** (nur seit `last_synced_date`, nicht neu von vorn):
-   - `garmin_get_activities(start_date, end_date=heute)` — Übersicht
-   - `apple_health_get_workouts(start_date, end_date=heute)` — falls Garmin für
-     den Zeitraum Lücken hat (Coverage-Gap-Hinweis der Tools beachten)
-   - Für neue Garmin-Aktivitäten mit eigenem Gerät (deviceName gesetzt):
-     `get_activity_detail(source_activity_id=...)` für Runden/Splits, wo eine
-     Einheit als "letzter Lauf" auf der Seite erscheinen soll
-3. **Deduplizieren**: Cycling/Rowing/Strength-Einträge, die sowohl bei Garmin
-   (geräte-los, aus einem Smart-Trainer/Ruder-Ergometer) als auch bei Apple
-   Health auftauchen, per Datum+Dauer (±5s) matchen — Garmin-Version behalten
-   (hat Watt/Trainingslast). Alles ab dem Datum, an dem `deviceName` in
-   `garmin_get_activities` zuverlässig gesetzt ist, zählt als Garmin-Periode;
-   Apple Health wird für diesen Zeitraum komplett ignoriert (sonst Doppelzählung
-   — geprüft: Garmin synct auch zu Apple Health zurück).
-4. **Cache aktualisieren**: neue Rohantworten an `sync/cache/*.json` anhängen,
-   `state.json.last_synced_date` auf heute setzen.
-5. **Build**: `python3 sync/build_analysis.py` liest den kompletten Cache, rechnet
-   alles neu (nicht nur die neuen Tage — die 42/7-Tage-Glättung braucht die volle
-   Reihe) und schreibt `../trainingsanalyse.html`.
-6. **Commit & Push** auf den aktuellen Branch, kurze Notiz an den Nutzer.
+Danach reicht für jeden weiteren Sync:
+
+```
+sync/.venv/bin/python sync/garmin_sync.py
+```
+
+ohne erneutes Passwort, bis Garmin die Sitzung irgendwann invalidiert — dann
+`garmin_login.py` einmal erneut ausführen.
+
+### Warum nicht Athletedata
+
+Der erste Aufbau dieser Seite lief über den Athletedata-MCP-Zugang (bequemer,
+aber nur innerhalb einer Claude-Sitzung erreichbar — eine echte, unbeaufsichtigte
+Automatisierung per cron/LaunchAgent kam da nicht dran). `garmin_sync.py`
+spricht jetzt direkt mit `garminconnect` (Python-Paket, Stand 0.3.2 — Methodennamen
+unten gegen die installierte Fassung geprüft, nicht blind aus einer Doku
+übernommen), läuft also komplett lokal, ohne Claude.
+
+**Ungeprüfter Punkt, ehrlich benannt:** Ich habe `garmin_sync.py` ohne Zugriff
+auf ein echtes Garmin-Konto geschrieben (kein Login aus dieser Sitzung möglich).
+Die Feldnamen der Aktivitäts-Antwort (Distanz, Dauer, Puls) sind mehrfach
+kandidiert, aber nicht verifiziert. Lauf beim ersten Mal:
+
+```
+sync/.venv/bin/python sync/garmin_sync.py --debug-first
+```
+
+Das druckt den kompletten Rohblock der ersten neuen Aktivität und speichert
+nichts. Prüf, ob `DISTANCE_KEYS`/`DURATION_KEYS`/`AVG_HR_KEYS`/`MAX_HR_KEYS`
+in `garmin_sync.py` die richtigen Felder treffen, bevor du ohne `--debug-first`
+laufen lässt.
+
+## Wiederkehrend einrichten (macOS LaunchAgent)
+
+Ruf die venv-Python direkt auf, keine Shell dazwischen (sonst fehlen im
+Dokumentenordner die Rechte):
+
+```xml
+<!-- ~/Library/LaunchAgents/com.hwpo.trainingsync.plist -->
+<key>ProgramArguments</key>
+<array>
+  <string>/absoluter/pfad/zu/HWPO-coach/sync/.venv/bin/python</string>
+  <string>/absoluter/pfad/zu/HWPO-coach/sync/garmin_sync.py</string>
+</array>
+<key>StartCalendarInterval</key>
+<dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>7</integer><key>Minute</key><integer>0</integer></dict>
+```
+
+Linux: `crontab -e` → `0 7 * * 1 /pfad/HWPO-coach/sync/.venv/bin/python /pfad/HWPO-coach/sync/garmin_sync.py`
+Windows: Aufgabenplanung, Aktion = derselbe venv-`python.exe`-Pfad + Skriptpfad als Argument.
+
+Die Seite aktualisiert sich nicht von selbst — sie wird neu gerechnet, wenn
+dieser Befehl läuft. Läuft er montags, ist die Seite montags aktuell.
+
+## Ablauf, den `garmin_sync.py` bei jedem Lauf durchgeht
+
+1. Sitzungs-Token aus `sync/.garmin_tokens/` laden (kein Passwort nötig).
+2. `sync/cache/state.json` lesen für `last_synced_date`.
+3. `get_activities_by_date(last_synced_date, heute)` — nur die neuen.
+4. Je neuer Aktivität: `get_activity_splits(id)` für Runden-Auflösung der
+   TRIMP-Rechnung (Rückfall auf Aktivitäts-Durchschnitt, wenn das fehlschlägt).
+5. TRIMP/Belastung/Fitness-Fatigue-Freshness auf dem Gesamtbestand neu rechnen
+   (`build_analysis.py`, die 42/7-Tage-Glättung braucht die volle Reihe, nicht
+   nur die neuen Tage).
+6. Zwischenstand in `sync/cache/` schreiben, `state.json` aktualisieren.
+7. Committen und pushen (Zonen, Bestleistungen, Wochen-Bubbles und der
+   Coach-Befund in `page_data.json`/`trainingsanalyse.html` bleiben dabei
+   unverändert — die brauchen prüfende Lektüre der Rohdaten, kein stures
+   Neu-Rechnen; dafür eine Claude-Sitzung mit Zugriff auf das Repo bitten).
 
 ## Formeln (siehe auch build_analysis.py, dort maßgeblich)
 
@@ -56,24 +104,31 @@ Ermüdung(t)  = Ermüdung(t-1)  + (Tages-Belastung(t) − Ermüdung(t-1))  / 7
 Frische(t)   = Fitness(t-1) − Ermüdung(t-1)
 ```
 
-## Bekannte, offen ausgewiesene Vereinfachungen (Stand erster Lauf, 13.09.2026)
+## Bekannte, offen ausgewiesene Vereinfachungen (Stand Erstaufbau, 13.09.2026)
 
-- Nur **20 von 249** Einheiten hatten eine Runden-/Split-Auflösung für die
-  TRIMP-Rechnung; der Rest lief auf Basis des Aktivitäts-Durchschnittspulses.
-  Bei künftigen Läufen: wenn `get_activity_detail` Splits/Laps liefert, IMMER
-  verwenden statt des nackten Durchschnitts.
+- Beim Erstaufbau hatten nur **20 von 249** Einheiten eine Runden-/Split-Auflösung
+  für die TRIMP-Rechnung; der Rest lief auf Basis des Aktivitäts-Durchschnittspulses.
 - `RHR` (46 bpm) und `HRMAX` (197 bpm) sind als Konstanten in
   `build_analysis.py` hinterlegt (10.-Perzentil-Baseline bzw. gemessenes,
-  ≥60s gehaltenes Maximum). Bei einem neuen, höheren Maximalpuls-Fund: Wert
-  ersetzen und dazuschreiben, woher er kommt.
+  ≥60s gehaltenes Maximum aus dem Erstaufbau). Bei einem neuen, höheren
+  Maximalpuls-Fund: Wert ersetzen und dazuschreiben, woher er kommt.
 - Geschlechts-Annahme für die TRIMP-Konstanten (0,64/1,92 statt 0,86/1,67):
   aus dem Vornamen abgeleitet, nicht bestätigt.
 - Bestleistungen kommen aus 1-km-Splits (Näherung), nicht aus einer echten
   Sekundenreihe.
+- Ab dem Umstieg auf `garminconnect` (13.09.2026) ist die im Erstaufbau
+  verwendete Apple-Health-Vorgeschichte (13.09.2025–16.08.2026) eingefroren;
+  neue Einheiten kommen nur noch direkt von Garmin. Das ist in Ordnung, weil
+  seit dem 17.08.2026 ohnehin ausschließlich mit Garmin-Gerät aufgezeichnet
+  wird.
 
 ## Dateien
 
-- `build_analysis.py` — die ganze Rechnung, von Rohdaten-Cache bis `page_data.json`
+- `garmin_login.py` — einmaliger interaktiver Login, legt den Sitzungs-Token an
+- `garmin_sync.py` — headless, wiederkehrend: neue Aktivitäten holen, TRIMP/PMC
+  neu rechnen, committen/pushen
+- `build_analysis.py` — die TRIMP-/Belastungs-/Fitness-Formeln als Code,
+  von beiden obigen Skripten importiert
 - `page_template.html` — das Seiten-Grundgerüst mit `__DATA__`-Platzhalter
-- `cache/` — Rohantworten der Athletedata-Werkzeuge (gitignored, enthält
-  Gesundheitsdaten)
+- `cache/`, `.garmin_tokens/`, `.venv/` — alle git-ignoriert (Gesundheitsdaten,
+  Sitzungs-Token, virtuelle Umgebung)
