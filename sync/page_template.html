@@ -1,0 +1,525 @@
+<title>Trainingsanalyse</title>
+<style>
+:root{
+  --bg:#FBFBFD; --card:#FFFFFF; --surface:#F2F2F4; --line:#EBEBEF;
+  --tx1:#111113; --tx2:#5C5C63; --tx3:#9A9AA2;
+  --accent:#F24E1E; --accent-wash:rgba(242,78,30,.14);
+  --hr1:#F6C9C0; --hr2:#EFA294; --hr3:#E4776A; --hr4:#D9412B; --hr5:#A8180C;
+  --pc1:#CBDDF0; --pc2:#A3C4E5; --pc3:#79A8D6; --pc4:#4E85C1; --pc5:#2A5FA0;
+  --run:#7ED321; --run-tx:#0A2E00; --other:#C7C7CC; --other-tx:#111113;
+  --load-lo:#AD9FF6; --load-mid:#AF3CFE; --load-hi:#BE0C0F;
+  --radius-card:18px; --radius-chip:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#000000; --card:#121214; --surface:#1C1C1E; --line:rgba(255,255,255,.10);
+    --tx1:#F5F5F7; --tx2:#AEAEB4; --tx3:#79797F;
+    --accent:#D97757; --accent-wash:rgba(217,119,87,.14);
+    --hr1:#8C6B60; --hr2:#A97463; --hr3:#C2705A; --hr4:#DA5E3F; --hr5:#F04B34;
+    --pc1:#55707F; --pc2:#5C8199; --pc3:#6494B4; --pc4:#6FA7CA; --pc5:#84BBDD;
+    --run:#6FBF2A; --run-tx:#0A1F00; --other:#48484C; --other-tx:#F5F5F7;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#000000; --card:#121214; --surface:#1C1C1E; --line:rgba(255,255,255,.10);
+  --tx1:#F5F5F7; --tx2:#AEAEB4; --tx3:#79797F;
+  --accent:#D97757; --accent-wash:rgba(217,119,87,.14);
+  --hr1:#8C6B60; --hr2:#A97463; --hr3:#C2705A; --hr4:#DA5E3F; --hr5:#F04B34;
+  --pc1:#55707F; --pc2:#5C8199; --pc3:#6494B4; --pc4:#6FA7CA; --pc5:#84BBDD;
+  --run:#6FBF2A; --run-tx:#0A1F00; --other:#48484C; --other-tx:#F5F5F7;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--tx1);font-family:system-ui,"Helvetica Neue",Arial,sans-serif;
+  font-variant-numeric:tabular-nums;}
+.wrap{max-width:720px;margin:0 auto;padding:0 20px 80px;}
+header.top{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;
+  border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;}
+.brand{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;}
+.mark{width:16px;height:16px;border-radius:4px;background:var(--accent);display:inline-block;}
+.stamp{font-size:11.5px;color:var(--tx3);text-align:right}
+section{padding-block:36px;border-bottom:1px solid var(--line);opacity:0;transform:translateY(14px);
+  transition:opacity .5s cubic-bezier(.22,1,.36,1), transform .5s cubic-bezier(.22,1,.36,1);}
+section.in{opacity:1;transform:none;}
+section:last-of-type{border-bottom:none}
+.eyebrow{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3);margin-bottom:14px;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-card);padding:22px;}
+.bignum{font-size:56px;line-height:1.05;letter-spacing:-.03em;font-weight:650;}
+.bignum.load{padding:22px;border-radius:var(--radius-card);text-align:center;color:#fff;}
+.label{font-size:13px;color:var(--tx2);margin-top:6px;}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px;}
+.tile{background:var(--surface);border-radius:var(--radius-chip);padding:14px;}
+.tile .v{font-size:24px;font-weight:600;}
+.tile .u{font-size:13px;color:var(--tx2);font-weight:400;}
+.tile .l{font-size:11.5px;color:var(--tx3);margin-top:4px;}
+.tappable{cursor:pointer;}
+.tappable .chev{font-size:11px;color:var(--tx3);margin-left:6px;}
+.expand-row{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s cubic-bezier(.22,1,.36,1);}
+.expand-row.open{grid-template-rows:1fr;}
+.expand-inner{overflow:hidden;}
+.panel{background:var(--surface);border-radius:var(--radius-chip);padding:16px;margin-top:12px;font-size:14px;line-height:1.5;}
+.formula{font-family:ui-monospace,Menlo,monospace;font-size:13px;background:var(--card);border:1px solid var(--line);
+  border-radius:10px;padding:10px 12px;margin:8px 0;white-space:pre-wrap;}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--tx2);margin-top:8px;}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+h2.headline{font-size:26px;letter-spacing:-.028em;font-weight:650;margin:0 0 18px;}
+.next-line{color:var(--accent);font-size:14px;margin-top:14px;cursor:pointer;}
+.next-line .chev{margin-left:4px;}
+svg{display:block;width:100%;height:auto;}
+.wk-bars{display:flex;gap:6px;align-items:flex-end;height:60px;margin-bottom:6px;}
+.wk-bars .bar{flex:1;background:var(--surface);border-radius:3px 3px 0 0;}
+.wk-labels{display:flex;gap:6px;font-size:11px;color:var(--tx3);}
+.wk-labels span{flex:1;text-align:center;}
+.zonebar-row{display:grid;grid-template-columns:28px 1fr 60px;align-items:center;gap:10px;margin-bottom:10px;}
+.zonebar-track{height:14px;border-radius:7px;background:var(--surface);overflow:hidden;}
+.zonebar-fill{height:100%;border-radius:7px;width:0;box-shadow:inset 0 0 0 1px var(--line);transition:width .6s cubic-bezier(.22,1,.36,1);}
+.zone-mark{font-size:13px;color:var(--tx2);}
+.zone-time{font-size:13px;text-align:right;color:var(--tx2);}
+table.zonetable{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;}
+table.zonetable td{padding:5px 4px;border-bottom:1px solid var(--line);}
+.coachcard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-card);padding:22px;}
+.coachhead{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.coachhead .ring{width:10px;height:10px;border-radius:50%;background:var(--accent);}
+.coachhead .name{font-weight:600;font-size:15px;}
+.coachhead .src{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-left:auto;}
+.coach-body{font-size:16px;line-height:1.5;color:var(--tx1);}
+.coach-btn{width:100%;margin-top:16px;padding:12px;border-radius:12px;border:none;background:var(--accent-wash);
+  color:var(--accent);font-size:14px;font-weight:600;cursor:pointer;}
+.pr-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);}
+.pr-emblem{width:22px;height:22px;flex:none;}
+.pr-dist{font-weight:650;}
+.pr-time{color:var(--tx2);}
+.bubblefield{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:96px;}
+.bubblecol{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:3px;}
+.bubble{border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;}
+.bubble.empty{border:1.5px dashed var(--tx3);background:transparent;width:16px;height:16px;}
+.daylabel{font-size:11px;color:var(--tx3);margin-top:4px;}
+.prevweek{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);}
+.prevweek .hd{font-size:13px;color:var(--tx2);margin-bottom:8px;display:flex;justify-content:space-between;}
+@media (prefers-reduced-motion: reduce){
+  section{opacity:1!important;transform:none!important;transition:none!important;}
+  .expand-row{transition:none!important;}
+  .zonebar-fill{transition:none!important;}
+}
+</style>
+
+<header class="top">
+  <div class="brand"><span class="mark"></span> Trainingsanalyse</div>
+  <div class="stamp" id="stampline"></div>
+</header>
+
+<div class="wrap">
+
+<section id="s-last">
+  <div id="last-name" style="font-size:32px;font-weight:650;letter-spacing:-.02em;"></div>
+  <div style="font-size:13px;color:var(--tx2);margin-top:4px;" id="last-meta"></div>
+
+  <div class="bignum load tappable" id="last-load-card" style="margin-top:20px;">
+    <div class="bignum" id="last-load-num">0</div>
+    <div class="label" style="color:rgba(255,255,255,.85)">Belastung <span class="chev">⌄</span></div>
+  </div>
+  <div class="expand-row" id="exp-load"><div class="expand-inner"><div class="panel" id="panel-load"></div></div></div>
+
+  <div class="tiles">
+    <div class="tile tappable" id="tile-dist"><div class="v" id="v-dist"></div><div class="l">Distanz <span class="chev">⌄</span></div></div>
+    <div class="tile tappable" id="tile-pace"><div class="v" id="v-pace"></div><div class="l">Tempo <span class="chev">⌄</span></div></div>
+    <div class="tile tappable" id="tile-hr"><div class="v" id="v-hr"></div><div class="l">Puls <span class="chev">⌄</span></div></div>
+  </div>
+  <div class="expand-row" id="exp-dist"><div class="expand-inner"><div class="panel" id="panel-dist"></div></div></div>
+  <div class="expand-row" id="exp-pace"><div class="expand-inner"><div class="panel" id="panel-pace"></div></div></div>
+  <div class="expand-row" id="exp-hr"><div class="expand-inner"><div class="panel" id="panel-hr"></div></div></div>
+
+  <div style="margin-top:20px;"><svg id="chart-last" viewBox="0 0 680 160"></svg></div>
+  <div class="legend"><span><span class="dot" style="background:var(--accent)"></span>Puls</span><span><span class="dot" style="background:var(--tx3)"></span>Tempo</span></div>
+</section>
+
+<section id="s-fitness">
+  <div class="eyebrow">Fitness</div>
+  <div style="display:flex;align-items:baseline;gap:10px;">
+    <div class="bignum" id="fit-num">0</div>
+    <div class="label" id="fit-delta"></div>
+  </div>
+  <svg id="chart-fitness" viewBox="0 0 680 220" style="margin-top:10px;"></svg>
+  <div class="wk-labels" id="fit-months"></div>
+  <div class="next-line tappable" id="open-fitness">Ermüdung und Frische zeigen <span class="chev">⌄</span></div>
+  <div class="expand-row" id="exp-fitness"><div class="expand-inner"><div class="panel" id="panel-fitness"></div></div></div>
+</section>
+
+<section id="s-week">
+  <div class="eyebrow">Wochenbelastung</div>
+  <div style="display:flex;gap:24px;align-items:flex-end;">
+    <div style="flex:1">
+      <div class="wk-bars" id="wk-days"></div>
+      <div class="wk-labels" id="wk-days-labels"><span>M</span><span>D</span><span>M</span><span>D</span><span>F</span><span>S</span><span>S</span></div>
+    </div>
+    <div style="text-align:right;">
+      <div class="bignum" id="wk-sum" style="font-size:48px;"></div>
+      <div class="label" id="wk-status"></div>
+    </div>
+  </div>
+  <svg id="chart-weeks" viewBox="0 0 680 140" style="margin-top:24px;"></svg>
+  <div class="next-line tappable" id="open-band">Wie das Band entsteht <span class="chev">⌄</span></div>
+  <div class="expand-row" id="exp-band"><div class="expand-inner"><div class="panel" id="panel-band"></div></div></div>
+</section>
+
+<section id="s-zones">
+  <div class="eyebrow">Zonen</div>
+  <h2 class="headline" id="zone-headline"></h2>
+  <div id="zone-bars"></div>
+  <div class="next-line tappable" id="open-zones">Zonen, Grenzen und Tempo <span class="chev">⌄</span></div>
+  <div class="expand-row" id="exp-zones"><div class="expand-inner"><div class="panel" id="panel-zones"></div></div></div>
+</section>
+
+<section id="s-coach">
+  <div class="eyebrow">Coach-Analyse</div>
+  <div class="coachcard">
+    <div class="coachhead"><span class="ring"></span><span class="name">Befund</span><span class="src">aus deinen Rohdaten</span></div>
+    <div class="coach-body" id="coach-teaser"></div>
+    <button class="coach-btn" id="open-coach">Mehr dazu</button>
+  </div>
+  <div class="expand-row" id="exp-coach"><div class="expand-inner"><div class="panel" id="panel-coach"></div></div></div>
+</section>
+
+<section id="s-bests">
+  <div class="eyebrow">Bestleistungen</div>
+  <div id="pr-list"></div>
+  <div class="next-line tappable" id="open-bests">Alle Strecken und die Vorhersage <span class="chev">⌄</span></div>
+  <div class="expand-row" id="exp-bests"><div class="expand-inner"><div class="panel" id="panel-bests"></div></div></div>
+</section>
+
+<section id="s-thisweek">
+  <div class="eyebrow">Diese Woche</div>
+  <div class="bignum" id="tw-km"></div>
+  <div class="label" id="tw-year"></div>
+  <div class="bubblefield" id="tw-bubbles" style="margin-top:18px;"></div>
+  <div class="next-line tappable" id="open-prev">Sieben Wochen davor <span class="chev">⌄</span></div>
+  <div class="expand-row" id="exp-prev"><div class="expand-inner" id="panel-prev"></div></div>
+</section>
+
+</div>
+
+<script id="page-data" type="application/json">__DATA__</script>
+<script>
+(function(){
+"use strict";
+const DATA = JSON.parse(document.getElementById('page-data').textContent);
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const root = document.documentElement;
+const forced = root.getAttribute('data-stand');
+
+function fmtMinSec(s){ if(s==null) return "–"; const m=Math.floor(s/60), sec=Math.round(s%60); return m+":"+String(sec).padStart(2,'0'); }
+function fmtPaceKm(s){ return fmtMinSec(s)+"/km"; }
+function fmtHM(s){ if(s==null) return "–"; const h=Math.floor(s/3600), m=Math.floor((s%3600)/60); return h+"h "+m+"min"; }
+function loadColor(v){
+  v = Math.max(0, Math.min(100, v));
+  const stops = [[0,[173,159,246]],[45,[175,60,254]],[100,[190,12,15]]];
+  let a=stops[0], b=stops[stops.length-1];
+  for(let i=0;i<stops.length-1;i++){ if(v>=stops[i][0] && v<=stops[i+1][0]){ a=stops[i]; b=stops[i+1]; break; } }
+  const t = (v-a[0])/(b[0]-a[0]||1);
+  const c = a[1].map((c0,i)=> Math.round(c0 + (b[1][i]-c0)*t));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+
+document.getElementById('stampline').textContent = DATA.meta.n_activities + ' Einheiten · Stand ' + DATA.meta.period_end.split('-').reverse().join('.');
+
+// ---------- Reveal on scroll ----------
+const sections = document.querySelectorAll('section');
+if(reduced || forced){
+  sections.forEach(s=>s.classList.add('in'));
+} else {
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+  }, {threshold:.15});
+  sections.forEach(s=>io.observe(s));
+}
+
+// ---------- Expand/collapse ----------
+function bindExpand(triggerId, rowId){
+  const trig = document.getElementById(triggerId), row = document.getElementById(rowId);
+  if(!trig||!row) return;
+  trig.addEventListener('click', ()=>{
+    const willOpen = !row.classList.contains('open');
+    document.querySelectorAll('.expand-row.open').forEach(r=>{ if(r!==row) r.classList.remove('open'); });
+    row.classList.toggle('open', willOpen);
+  });
+}
+[['last-load-card','exp-load'],['tile-dist','exp-dist'],['tile-pace','exp-pace'],['tile-hr','exp-hr'],
+ ['open-fitness','exp-fitness'],['open-band','exp-band'],['open-zones','exp-zones'],
+ ['open-coach','exp-coach'],['open-bests','exp-bests'],['open-prev','exp-prev']].forEach(p=>bindExpand(p[0],p[1]));
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') document.querySelectorAll('.expand-row.open').forEach(r=>r.classList.remove('open')); });
+
+// click feedback
+document.querySelectorAll('.tappable').forEach(el=>{
+  el.addEventListener('pointerdown', ()=>{ if(!reduced){ el.style.transform='scale(.985)'; setTimeout(()=>el.style.transform='',150);} });
+});
+
+// ---------- count-up ----------
+function countUp(el, target, decimals){
+  if(reduced || forced){ el.textContent = target.toFixed(decimals); return; }
+  const dur=550, start=performance.now();
+  function step(now){
+    const p = Math.min(1,(now-start)/dur);
+    const eased = 1-Math.pow(1-p,3);
+    el.textContent = (target*eased).toFixed(decimals);
+    if(p<1) requestAnimationFrame(step); else el.textContent = target.toFixed(decimals);
+  }
+  requestAnimationFrame(step);
+}
+
+// =========================================================
+// SECTION 1: Der letzte Lauf
+// =========================================================
+const lr = DATA.last_run;
+document.getElementById('last-name').textContent = lr.name;
+const kindText = "Ruhiger Dauerlauf (Ø-Puls unter deiner Marathonzone)";
+document.getElementById('last-meta').textContent = lr.date.split('-').reverse().join('.') + ' · ' + kindText;
+
+const loadCard = document.getElementById('last-load-card');
+loadCard.style.background = loadColor(lr.belastung);
+countUp(document.getElementById('last-load-num'), lr.belastung, 0);
+
+document.getElementById('v-dist').innerHTML = (lr.distance_m/1000).toFixed(2)+'<span style="font-size:14px;color:var(--tx2)"> km</span>';
+document.getElementById('v-pace').innerHTML = fmtMinSec(lr.avg_pace_s_km)+'<span style="font-size:14px;color:var(--tx2)"> /km</span>';
+document.getElementById('v-hr').innerHTML = lr.avg_hr+'<span style="font-size:14px;color:var(--tx2)"> bpm</span>';
+
+document.getElementById('panel-load').innerHTML = `
+  <div class="formula">TRIMP = Σ [ hr_i · 0,64 · e^(1,92·hr_i) ] / 60,  hr_i = (HF−${DATA.athlete.rhr})/(${DATA.athlete.hrmax_measured}−${DATA.athlete.rhr})</div>
+  Für diese Einheit über die zwei Runden gerechnet (Ø-Puls 138 über 25:00, 140 über 5:31): TRIMP ≈ ${lr.trimp}.<br>
+  Anker (95. Perzentil deiner Tages-TRIMP, mind. 40) = ${DATA.athlete.anchor_trimp}.<br>
+  Belastung = 100 × ${lr.trimp} / ${DATA.athlete.anchor_trimp} = <b>${lr.belastung}</b>.`;
+
+document.getElementById('panel-dist').innerHTML = `
+  <table class="zonetable">
+  ${lr.splits.map(s=>`<tr><td>km ${s.km}${s.partial_m?` (${(s.partial_m/1000).toFixed(2)} km)`:''}</td><td>${fmtMinSec(s.durationSec)}</td><td>Ø ${s.avgHr} bpm</td></tr>`).join('')}
+  </table>
+  <div style="margin-top:8px;color:var(--tx2);font-size:13px;">GAP (steigungsbereinigt) nicht ausgewiesen: Zonen-Splits liegen als Rundenmittel vor, keine Sekunde-für-Sekunde-Höhenreihe für dieses Fenster eingebettet.</div>`;
+
+document.getElementById('panel-pace').innerHTML = `
+  Mittleres Tempo: ${fmtMinSec(lr.avg_pace_s_km)}/km über ${(lr.distance_m/1000).toFixed(2)} km in ${fmtMinSec(lr.duration_s)} (Bewegungszeit).<br>
+  Verstrichene Zeit: ${fmtMinSec(lr.elapsed_s)} — die Differenz von ${lr.elapsed_s-lr.duration_s}s ist eine Pause mitten im Lauf.`;
+
+document.getElementById('panel-hr').innerHTML = `
+  Ø ${lr.avg_hr} bpm, höchster gehaltener Wert ${lr.max_hr} bpm.<br>
+  Zeit ab Zone 3 (≥70 % von ${DATA.athlete.hrmax_measured}): über weite Strecken, siehe zweite Runde.<br>
+  Eingeordnet als ruhiger Dauerlauf, weil der Ø-Puls (138) unterhalb deiner Marathon-Pace-Zone liegt.<br>
+  <i>Eigene Notiz von dir zu dieser Einheit: „${lr.note}"</i>`;
+
+// last-run chart from 5 splits + 2 laps (only resolution actually held for this view)
+(function(){
+  const svg = document.getElementById('chart-last');
+  const W=680,H=160,pad=10;
+  const cum = [0]; let t=0;
+  lr.splits.forEach(s=>{ t+=s.durationSec; cum.push(t); });
+  const hrs = [lr.splits[0].avgHr, ...lr.splits.map(s=>s.avgHr)];
+  const maxT = cum[cum.length-1];
+  const minHr = Math.min(...hrs)-5, maxHr = Math.max(...hrs)+5;
+  const x = t=> pad + (W-2*pad)*(t/maxT);
+  const y = h=> H-pad - (H-2*pad)*((h-minHr)/(maxHr-minHr));
+  let path = cum.map((t,i)=> (i===0?'M':'L')+x(t)+','+y(hrs[i])).join(' ');
+  svg.innerHTML = `<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>`;
+})();
+
+// =========================================================
+// SECTION 2: Fitness
+// =========================================================
+const d = DATA.daily;
+const todayFit = d.fitness[d.fitness.length-1];
+const fit7ago = d.fitness[d.fitness.length-8];
+countUp(document.getElementById('fit-num'), todayFit, 1);
+const delta = todayFit-fit7ago;
+document.getElementById('fit-delta').textContent = (delta>=0?'+':'')+delta.toFixed(1)+' über 7 Tage';
+
+(function(){
+  const svg = document.getElementById('chart-fitness');
+  const W=680,H=160,pad=8;
+  const n = d.fitness.length;
+  const maxF = Math.max(...d.fitness)*1.15;
+  const x = i=> pad + (W-2*pad)*(i/(n-1));
+  const y = v=> H-pad - (H-2*pad)*(v/maxF);
+  let path = d.fitness.map((v,i)=> (i===0?'M':'L')+x(i)+','+y(v)).join(' ');
+  const areaPath = path + ` L${x(n-1)},${H-pad} L${x(0)},${H-pad} Z`;
+  const todayY = y(todayFit);
+  let svgHtml = `<path d="${areaPath}" fill="var(--surface)"/>`;
+  svgHtml += `<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2"/>`;
+  svgHtml += `<line x1="${pad}" y1="${todayY}" x2="${W-pad}" y2="${todayY}" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,3"/>`;
+  svgHtml += `<circle cx="${x(n-1)}" cy="${todayY}" r="4" fill="var(--accent)"/>`;
+  svg.innerHTML = svgHtml;
+  // navigator bars
+  const bars = document.createElement('div');
+  const barsWrap = document.querySelector('#s-fitness');
+  const maxLoad = Math.max(...d.load,1);
+  let barsHtml = '<div style="display:flex;gap:1px;height:36px;align-items:flex-end;margin-top:6px;">';
+  const step = Math.max(1, Math.floor(n/366));
+  for(let i=0;i<n;i+=step){
+    const h = Math.max(1, 36*(d.load[i]/maxLoad));
+    barsHtml += `<div style="flex:1;background:var(--surface);height:${h}px;"></div>`;
+  }
+  barsHtml += '</div>';
+  document.getElementById('chart-fitness').insertAdjacentHTML('afterend', barsHtml);
+})();
+
+const months = ['Sep','Okt','Nov','Dez','Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep'];
+document.getElementById('fit-months').innerHTML = months.map(m=>`<span>${m}</span>`).join('');
+
+document.getElementById('panel-fitness').innerHTML = `
+  <div class="formula">Fitness(t) = Fitness(t−1) + (Last(t) − Fitness(t−1)) / 42
+Ermüdung(t) = Ermüdung(t−1) + (Last(t) − Ermüdung(t−1)) / 7
+Frische(t) = Fitness(t−1) − Ermüdung(t−1)</div>
+  Fitness heute: <b>${todayFit.toFixed(1)}</b> · Ermüdung heute: <b>${d.fatigue[d.fatigue.length-1].toFixed(1)}</b> · Frische heute: <b>${d.fresh[d.fresh.length-1].toFixed(1)}</b><br><br>
+  Die ersten 42 Tage der Reihe (bis Ende Oktober 2025) sind Einschwingen, kein Zustand.<br>
+  ${DATA.no_record_days} von 366 Tagen im Jahr tragen keinerlei Aufzeichnung – am auffälligsten die Lücke vom ${DATA.gap_period.start.split('-').reverse().join('.')} bis ${DATA.gap_period.end.split('-').reverse().join('.')} (${DATA.gap_period.days} Tage am Stück). Das ist wahrscheinlich eine Aufzeichnungslücke (Apple-Health-Ruhepuls setzt exakt in diesem Fenster aus), keine echte Trainingspause – die Kurve kann das nicht unterscheiden und zeigt in dieser Zeit einfach Last null.<br><br>
+  Diese Zahlen haben dieselbe Form wie die eines Bezahlanbieters, aber nicht dieselbe Skala.`;
+
+// =========================================================
+// SECTION 3: Wochenbelastung
+// =========================================================
+const tw = DATA.this_week;
+const dayLetters = ['M','D','M','D','F','S','S'];
+const maxDay = Math.max(...tw.map(dd=>dd.activities.reduce((s,a)=>s+a.duration_s,0)),1);
+document.getElementById('wk-days').innerHTML = tw.map(dd=>{
+  const secs = dd.activities.reduce((s,a)=>s+a.duration_s,0);
+  const h = Math.max(2, 56*(secs/maxDay));
+  return `<div class="bar" style="height:${h}px;"></div>`;
+}).join('');
+
+const ws = DATA.week_status;
+document.getElementById('wk-sum').textContent = ws.load.toFixed(0);
+const statusLabel = ws.status==='ueber' ? 'über dem Band' : (ws.status==='unter' ? 'unter dem Band' : 'im Band');
+document.getElementById('wk-status').textContent = statusLabel;
+
+(function(){
+  const svg = document.getElementById('chart-weeks');
+  const W=680,H=110,pad=10;
+  const chart = DATA.weekly_chart;
+  const n = chart.length;
+  const maxV = Math.max(...chart.map(c=>Math.max(c.load,c.band)))*1.15;
+  const x = i=> pad + (W-2*pad)*(i/(n-1));
+  const y = v=> H-pad - (H-2*pad)*(v/maxV);
+  const bandPath = chart.map((c,i)=>(i===0?'M':'L')+x(i)+','+y(c.band)).join(' ')
+     + ' L'+x(n-1)+','+(H-pad)+' L'+x(0)+','+(H-pad)+' Z';
+  let html = `<path d="${bandPath}" fill="var(--surface)"/>`;
+  chart.forEach((c,i)=>{
+    if(i<n-1) html += `<circle cx="${x(i)}" cy="${y(c.load)}" r="3" fill="none" stroke="var(--tx3)" stroke-width="1.5"/>`;
+  });
+  const lastX = x(n-1);
+  html += `<line x1="${lastX}" y1="${H-pad}" x2="${lastX}" y2="${y(chart[n-1].load)}" stroke="var(--accent)" stroke-width="1.5"/>`;
+  html += `<circle cx="${lastX}" cy="${y(chart[n-1].load)}" r="5" fill="var(--accent)"/>`;
+  svg.innerHTML = html;
+})();
+
+document.getElementById('panel-band').innerHTML = `
+  Summe dieser Woche: <b>${ws.load.toFixed(1)}</b> (Mo–So, Summe der Tages-Belastung).<br>
+  Schnitt der drei Wochen davor: <b>${ws.band_avg.toFixed(1)}</b>.<br>
+  Band: 0,82× bis 1,18× dieses Schnitts. Diese Woche liegt bei ${(ws.load/ws.band_avg*100).toFixed(0)} % davon → <b>${statusLabel}</b>.`;
+
+// =========================================================
+// SECTION 4: Zonen
+// =========================================================
+const hz = DATA.hr_zone_pct;
+const topZone = Object.entries(hz).sort((a,b)=>b[1]-a[1])[0];
+document.getElementById('zone-headline').textContent = `${topZone[1]}% deiner Zeit liegen in ${topZone[0]==='Z1'?'unten':topZone[0]}`;
+
+const zoneColors = {Z1:'var(--hr1)',Z2:'var(--hr2)',Z3:'var(--hr3)',Z4:'var(--hr4)',Z5:'var(--hr5)'};
+const hrHours = DATA.hr_zones;
+const maxH = Math.max(...Object.values(hrHours),0.01);
+document.getElementById('zone-bars').innerHTML = ['Z1','Z2','Z3','Z4','Z5'].map(z=>{
+  const h = hrHours[z]||0;
+  if(h<=0) return '';
+  const w = 100*h/maxH;
+  return `<div class="zonebar-row"><div class="zone-mark">${z}</div>
+    <div class="zonebar-track"><div class="zonebar-fill" data-w="${w}" style="background:${zoneColors[z]}"></div></div>
+    <div class="zone-time">${h.toFixed(0)} h</div></div>`;
+}).join('');
+requestAnimationFrame(()=> setTimeout(()=>{
+  document.querySelectorAll('.zonebar-fill').forEach((el,i)=> setTimeout(()=>{ el.style.width = el.dataset.w+'%'; }, reduced?0:i*110));
+},50));
+
+const pz = DATA.pace_zones;
+document.getElementById('panel-zones').innerHTML = `
+  Zeitraum: ${DATA.meta.period_start.split('-').reverse().join('.')} – ${DATA.meta.period_end.split('-').reverse().join('.')}, gegen die unten stehenden, aus dem gemessenen Maximum abgeleiteten Pulszonen (kein gespeicherter Schwellenpuls gefunden).
+  <table class="zonetable">
+  <tr><td>Z1 &lt;60%</td><td>&lt;${Math.round(DATA.athlete.hrmax_measured*0.6)} bpm</td><td>${(hrHours.Z1||0).toFixed(1)} h</td><td>${(hz.Z1||0).toFixed(0)}%</td></tr>
+  <tr><td>Z2 60–70%</td><td>${Math.round(DATA.athlete.hrmax_measured*0.6)}–${Math.round(DATA.athlete.hrmax_measured*0.7)}</td><td>${(hrHours.Z2||0).toFixed(1)} h</td><td>${(hz.Z2||0).toFixed(0)}%</td></tr>
+  <tr><td>Z3 70–80%</td><td>${Math.round(DATA.athlete.hrmax_measured*0.7)}–${Math.round(DATA.athlete.hrmax_measured*0.8)}</td><td>${(hrHours.Z3||0).toFixed(1)} h</td><td>${(hz.Z3||0).toFixed(0)}%</td></tr>
+  <tr><td>Z4 80–90%</td><td>${Math.round(DATA.athlete.hrmax_measured*0.8)}–${Math.round(DATA.athlete.hrmax_measured*0.9)}</td><td>${(hrHours.Z4||0).toFixed(1)} h</td><td>${(hz.Z4||0).toFixed(0)}%</td></tr>
+  <tr><td>Z5 ≥90%</td><td>≥${Math.round(DATA.athlete.hrmax_measured*0.9)}</td><td>${(hrHours.Z5||0).toFixed(1)} h</td><td>${(hz.Z5||0).toFixed(0)}%</td></tr>
+  </table>
+  <div style="margin-top:14px;">Tempozonen (Daniels, VDOT ${DATA.athlete.vdot} aus Garmins gemessenem VO2max vom ${DATA.athlete.vdot_date}):</div>
+  <table class="zonetable">
+  <tr><td>Locker (E)</td><td>${pz.E.label}</td><td>${pz.E.basis}</td></tr>
+  <tr><td>Marathon (M)</td><td>${pz.M.label}</td><td>${pz.M.basis}</td></tr>
+  <tr><td>Schwelle (T)</td><td>${pz.T.label}</td><td>${pz.T.basis}</td></tr>
+  <tr><td>Intervall (I)</td><td>${pz.I.label}</td><td>${pz.I.basis}</td></tr>
+  <tr><td>Wiederholung (R)</td><td>${pz.R.label}</td><td>${pz.R.basis}</td></tr>
+  </table>
+  <div style="margin-top:10px;">${DATA.easy_pct}% deiner gelaufenen Kilometer lagen im lockeren Bereich oder langsamer.</div>
+  <div style="margin-top:10px;">${DATA.athlete.hrmax_note}</div>`;
+
+// =========================================================
+// SECTION 5: Coach
+// =========================================================
+document.getElementById('coach-teaser').textContent =
+  "Deine Wochenbelastung kennt kaum ein ruhiges Dazwischen. Sie springt immer wieder um 30 bis fast 700 Prozent nach oben – zuletzt in der Woche direkt nach deiner Rückkehr von einer Achillessehnenreizung.";
+
+document.getElementById('panel-coach').innerHTML = `
+  <b>Deine Wochenbelastung springt chronisch, statt stufenweise zu steigen — und der jüngste Sprung fiel direkt in die Woche nach einer Verletzungspause.</b><br><br>
+  <ul style="padding-left:18px;margin:8px 0;">
+    <li>08.–14.09.2025 → 15.–21.09.2025: Wochenbelastung 49,5 → 389,9 (+687%)</li>
+    <li>09.–15.03.2026 → 16.–22.03.2026: 48,9 → 193,9 (+296%), direkt nach 123 Tagen ohne jede Aufzeichnung</li>
+    <li>17.–23.08.2026 → 24.–30.08.2026: 72,4 → 267,5 (+270%), die Woche direkt nach "Wiedereinstieg nach Achillessehnenreizung"</li>
+  </ul>
+  Konkret für die kommende Woche: Steig nach der aktuellen Pause mit höchstens dem 1,2-Fachen deiner letzten Trainingswoche ein (~235 Belastungspunkte), verteilt auf mindestens 3 Tage – nicht wieder Rad und Schwimmen am selben Tag wie am 25.08.`;
+
+// =========================================================
+// SECTION 6: Bestleistungen
+// =========================================================
+const b = DATA.bests;
+const emblems = {"1":"●","5":"◆","10":"▲","16.09":"■","21.0975":"★","42.195":"⬟"};
+const labels = {"1":"1 km","5":"5 km","10":"10 km","16.09":"10 Meilen","21.0975":"Halbmarathon","42.195":"Marathon"};
+const order = ["10","16.09","21.0975","42.195"];
+document.getElementById('pr-list').innerHTML = order.filter(k=>b[k]).map(k=>{
+  const [t,dt] = b[k];
+  return `<div class="pr-row"><span class="pr-emblem">${emblems[k]}</span><span class="pr-dist">${labels[k]}</span><span class="pr-time">(${fmtMinSec(t)})</span></div>`;
+}).join('');
+
+document.getElementById('panel-bests').innerHTML = `
+  <table class="zonetable">
+  ${Object.keys(labels).filter(k=>b[k]).map(k=>{
+    const [t,dt,id] = b[k];
+    const paceKm = k==="42.195"?42.195:k==="21.0975"?21.0975:k==="16.09"?16.09:parseFloat(k);
+    return `<tr><td>${labels[k]}</td><td>${fmtMinSec(t)}</td><td>${fmtMinSec(t/paceKm)}/km</td><td>${dt.split('-').reverse().join('.')}</td></tr>`;
+  }).join('')}
+  ${!b["42.195"]?'<tr><td>Marathon</td><td colspan="3">keine Einheit mit ausreichender Distanz im Datenbestand</td></tr>':''}
+  </table>
+  <div style="margin-top:8px;color:var(--tx2);font-size:13px;">Näherungsweise aus Kilometer-Splits berechnet (1-km-Auflösung, gleitendes Fenster über die Splits – nicht die echte Sekundenreihe).</div>
+  <div style="margin-top:14px;">Vorhersage Halbmarathon: Riegel ${DATA.predictions.hm.riegel} · Daniels/System ${DATA.predictions.hm.daniels_system}</div>
+  <div>Vorhersage Marathon: Riegel ${DATA.predictions.marathon.riegel} · Daniels/System ${DATA.predictions.marathon.daniels_system}</div>
+  <div style="margin-top:8px;color:var(--tx2);font-size:13px;">Die Differenz zwischen beiden Wegen ist keine Panne, sondern die ehrliche Spanne.</div>`;
+
+// =========================================================
+// SECTION 7: Diese Woche
+// =========================================================
+document.getElementById('tw-km').textContent = DATA.running.week_km.toFixed(1)+' km';
+document.getElementById('tw-year').textContent = DATA.running.year_km.toFixed(0)+' km über 12 Monate';
+
+function bubbleHtml(dayObj, dayLetter){
+  if(!dayObj.activities.length) return `<div class="bubblecol"><div class="bubble empty"></div><div class="daylabel">${dayLetter}</div></div>`;
+  const bubbles = dayObj.activities.map(a=>{
+    const isRun = /run|laufen|treadmill/i.test(a.sport);
+    const size = Math.max(14, Math.min(40, 14+a.duration_s/120));
+    const val = a.distance_m ? (a.distance_m/1000).toFixed(1) : Math.round(a.duration_s/60);
+    return `<div class="bubble" style="width:${size}px;height:${size}px;background:${isRun?'var(--run)':'var(--other)'};color:${isRun?'var(--run-tx)':'var(--other-tx)'};font-size:${size>26?11:9}px;">${val}</div>`;
+  }).join('');
+  return `<div class="bubblecol">${bubbles}<div class="daylabel">${dayLetter}</div></div>`;
+}
+document.getElementById('tw-bubbles').innerHTML = tw.map((d,i)=>bubbleHtml(d,dayLetters[i])).join('');
+
+document.getElementById('panel-prev').innerHTML = DATA.prev7.map(w=>{
+  const bubbles = w.days.map((d,i)=>bubbleHtml(d,dayLetters[i])).join('');
+  return `<div class="prevweek"><div class="hd"><span>${w.week_start.split('-').reverse().join('.')} – ${w.week_end.split('-').reverse().join('.')}</span><span>${w.run_km.toFixed(1)} km Laufen</span></div>
+  <div class="bubblefield" style="height:70px;">${bubbles}</div></div>`;
+}).join('');
+
+if(forced==='alles'){ document.querySelectorAll('.expand-row').forEach(r=>r.classList.add('open')); }
+
+})();
+</script>

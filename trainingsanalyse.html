@@ -1,0 +1,525 @@
+<title>Trainingsanalyse</title>
+<style>
+:root{
+  --bg:#FBFBFD; --card:#FFFFFF; --surface:#F2F2F4; --line:#EBEBEF;
+  --tx1:#111113; --tx2:#5C5C63; --tx3:#9A9AA2;
+  --accent:#F24E1E; --accent-wash:rgba(242,78,30,.14);
+  --hr1:#F6C9C0; --hr2:#EFA294; --hr3:#E4776A; --hr4:#D9412B; --hr5:#A8180C;
+  --pc1:#CBDDF0; --pc2:#A3C4E5; --pc3:#79A8D6; --pc4:#4E85C1; --pc5:#2A5FA0;
+  --run:#7ED321; --run-tx:#0A2E00; --other:#C7C7CC; --other-tx:#111113;
+  --load-lo:#AD9FF6; --load-mid:#AF3CFE; --load-hi:#BE0C0F;
+  --radius-card:18px; --radius-chip:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#000000; --card:#121214; --surface:#1C1C1E; --line:rgba(255,255,255,.10);
+    --tx1:#F5F5F7; --tx2:#AEAEB4; --tx3:#79797F;
+    --accent:#D97757; --accent-wash:rgba(217,119,87,.14);
+    --hr1:#8C6B60; --hr2:#A97463; --hr3:#C2705A; --hr4:#DA5E3F; --hr5:#F04B34;
+    --pc1:#55707F; --pc2:#5C8199; --pc3:#6494B4; --pc4:#6FA7CA; --pc5:#84BBDD;
+    --run:#6FBF2A; --run-tx:#0A1F00; --other:#48484C; --other-tx:#F5F5F7;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#000000; --card:#121214; --surface:#1C1C1E; --line:rgba(255,255,255,.10);
+  --tx1:#F5F5F7; --tx2:#AEAEB4; --tx3:#79797F;
+  --accent:#D97757; --accent-wash:rgba(217,119,87,.14);
+  --hr1:#8C6B60; --hr2:#A97463; --hr3:#C2705A; --hr4:#DA5E3F; --hr5:#F04B34;
+  --pc1:#55707F; --pc2:#5C8199; --pc3:#6494B4; --pc4:#6FA7CA; --pc5:#84BBDD;
+  --run:#6FBF2A; --run-tx:#0A1F00; --other:#48484C; --other-tx:#F5F5F7;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--tx1);font-family:system-ui,"Helvetica Neue",Arial,sans-serif;
+  font-variant-numeric:tabular-nums;}
+.wrap{max-width:720px;margin:0 auto;padding:0 20px 80px;}
+header.top{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;
+  border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;}
+.brand{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;}
+.mark{width:16px;height:16px;border-radius:4px;background:var(--accent);display:inline-block;}
+.stamp{font-size:11.5px;color:var(--tx3);text-align:right}
+section{padding-block:36px;border-bottom:1px solid var(--line);opacity:0;transform:translateY(14px);
+  transition:opacity .5s cubic-bezier(.22,1,.36,1), transform .5s cubic-bezier(.22,1,.36,1);}
+section.in{opacity:1;transform:none;}
+section:last-of-type{border-bottom:none}
+.eyebrow{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3);margin-bottom:14px;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-card);padding:22px;}
+.bignum{font-size:56px;line-height:1.05;letter-spacing:-.03em;font-weight:650;}
+.bignum.load{padding:22px;border-radius:var(--radius-card);text-align:center;color:#fff;}
+.label{font-size:13px;color:var(--tx2);margin-top:6px;}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px;}
+.tile{background:var(--surface);border-radius:var(--radius-chip);padding:14px;}
+.tile .v{font-size:24px;font-weight:600;}
+.tile .u{font-size:13px;color:var(--tx2);font-weight:400;}
+.tile .l{font-size:11.5px;color:var(--tx3);margin-top:4px;}
+.tappable{cursor:pointer;}
+.tappable .chev{font-size:11px;color:var(--tx3);margin-left:6px;}
+.expand-row{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s cubic-bezier(.22,1,.36,1);}
+.expand-row.open{grid-template-rows:1fr;}
+.expand-inner{overflow:hidden;}
+.panel{background:var(--surface);border-radius:var(--radius-chip);padding:16px;margin-top:12px;font-size:14px;line-height:1.5;}
+.formula{font-family:ui-monospace,Menlo,monospace;font-size:13px;background:var(--card);border:1px solid var(--line);
+  border-radius:10px;padding:10px 12px;margin:8px 0;white-space:pre-wrap;}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--tx2);margin-top:8px;}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+h2.headline{font-size:26px;letter-spacing:-.028em;font-weight:650;margin:0 0 18px;}
+.next-line{color:var(--accent);font-size:14px;margin-top:14px;cursor:pointer;}
+.next-line .chev{margin-left:4px;}
+svg{display:block;width:100%;height:auto;}
+.wk-bars{display:flex;gap:6px;align-items:flex-end;height:60px;margin-bottom:6px;}
+.wk-bars .bar{flex:1;background:var(--surface);border-radius:3px 3px 0 0;}
+.wk-labels{display:flex;gap:6px;font-size:11px;color:var(--tx3);}
+.wk-labels span{flex:1;text-align:center;}
+.zonebar-row{display:grid;grid-template-columns:28px 1fr 60px;align-items:center;gap:10px;margin-bottom:10px;}
+.zonebar-track{height:14px;border-radius:7px;background:var(--surface);overflow:hidden;}
+.zonebar-fill{height:100%;border-radius:7px;width:0;box-shadow:inset 0 0 0 1px var(--line);transition:width .6s cubic-bezier(.22,1,.36,1);}
+.zone-mark{font-size:13px;color:var(--tx2);}
+.zone-time{font-size:13px;text-align:right;color:var(--tx2);}
+table.zonetable{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;}
+table.zonetable td{padding:5px 4px;border-bottom:1px solid var(--line);}
+.coachcard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-card);padding:22px;}
+.coachhead{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.coachhead .ring{width:10px;height:10px;border-radius:50%;background:var(--accent);}
+.coachhead .name{font-weight:600;font-size:15px;}
+.coachhead .src{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-left:auto;}
+.coach-body{font-size:16px;line-height:1.5;color:var(--tx1);}
+.coach-btn{width:100%;margin-top:16px;padding:12px;border-radius:12px;border:none;background:var(--accent-wash);
+  color:var(--accent);font-size:14px;font-weight:600;cursor:pointer;}
+.pr-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);}
+.pr-emblem{width:22px;height:22px;flex:none;}
+.pr-dist{font-weight:650;}
+.pr-time{color:var(--tx2);}
+.bubblefield{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:96px;}
+.bubblecol{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:3px;}
+.bubble{border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;}
+.bubble.empty{border:1.5px dashed var(--tx3);background:transparent;width:16px;height:16px;}
+.daylabel{font-size:11px;color:var(--tx3);margin-top:4px;}
+.prevweek{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);}
+.prevweek .hd{font-size:13px;color:var(--tx2);margin-bottom:8px;display:flex;justify-content:space-between;}
+@media (prefers-reduced-motion: reduce){
+  section{opacity:1!important;transform:none!important;transition:none!important;}
+  .expand-row{transition:none!important;}
+  .zonebar-fill{transition:none!important;}
+}
+</style>
+
+<header class="top">
+  <div class="brand"><span class="mark"></span> Trainingsanalyse</div>
+  <div class="stamp" id="stampline"></div>
+</header>
+
+<div class="wrap">
+
+<section id="s-last">
+  <div id="last-name" style="font-size:32px;font-weight:650;letter-spacing:-.02em;"></div>
+  <div style="font-size:13px;color:var(--tx2);margin-top:4px;" id="last-meta"></div>
+
+  <div class="bignum load tappable" id="last-load-card" style="margin-top:20px;">
+    <div class="bignum" id="last-load-num">0</div>
+    <div class="label" style="color:rgba(255,255,255,.85)">Belastung <span class="chev">⌄</span></div>
+  </div>
+  <div class="expand-row" id="exp-load"><div class="expand-inner"><div class="panel" id="panel-load"></div></div></div>
+
+  <div class="tiles">
+    <div class="tile tappable" id="tile-dist"><div class="v" id="v-dist"></div><div class="l">Distanz <span class="chev">⌄</span></div></div>
+    <div class="tile tappable" id="tile-pace"><div class="v" id="v-pace"></div><div class="l">Tempo <span class="chev">⌄</span></div></div>
+    <div class="tile tappable" id="tile-hr"><div class="v" id="v-hr"></div><div class="l">Puls <span class="chev">⌄</span></div></div>
+  </div>
+  <div class="expand-row" id="exp-dist"><div class="expand-inner"><div class="panel" id="panel-dist"></div></div></div>
+  <div class="expand-row" id="exp-pace"><div class="expand-inner"><div class="panel" id="panel-pace"></div></div></div>
+  <div class="expand-row" id="exp-hr"><div class="expand-inner"><div class="panel" id="panel-hr"></div></div></div>
+
+  <div style="margin-top:20px;"><svg id="chart-last" viewBox="0 0 680 160"></svg></div>
+  <div class="legend"><span><span class="dot" style="background:var(--accent)"></span>Puls</span><span><span class="dot" style="background:var(--tx3)"></span>Tempo</span></div>
+</section>
+
+<section id="s-fitness">
+  <div class="eyebrow">Fitness</div>
+  <div style="display:flex;align-items:baseline;gap:10px;">
+    <div class="bignum" id="fit-num">0</div>
+    <div class="label" id="fit-delta"></div>
+  </div>
+  <svg id="chart-fitness" viewBox="0 0 680 220" style="margin-top:10px;"></svg>
+  <div class="wk-labels" id="fit-months"></div>
+  <div class="next-line tappable" id="open-fitness">Ermüdung und Frische zeigen <span class="chev">⌄</span></div>
+  <div class="expand-row" id="exp-fitness"><div class="expand-inner"><div class="panel" id="panel-fitness"></div></div></div>
+</section>
+
+<section id="s-week">
+  <div class="eyebrow">Wochenbelastung</div>
+  <div style="display:flex;gap:24px;align-items:flex-end;">
+    <div style="flex:1">
+      <div class="wk-bars" id="wk-days"></div>
+      <div class="wk-labels" id="wk-days-labels"><span>M</span><span>D</span><span>M</span><span>D</span><span>F</span><span>S</span><span>S</span></div>
+    </div>
+    <div style="text-align:right;">
+      <div class="bignum" id="wk-sum" style="font-size:48px;"></div>
+      <div class="label" id="wk-status"></div>
+    </div>
+  </div>
+  <svg id="chart-weeks" viewBox="0 0 680 140" style="margin-top:24px;"></svg>
+  <div class="next-line tappable" id="open-band">Wie das Band entsteht <span class="chev">⌄</span></div>
+  <div class="expand-row" id="exp-band"><div class="expand-inner"><div class="panel" id="panel-band"></div></div></div>
+</section>
+
+<section id="s-zones">
+  <div class="eyebrow">Zonen</div>
+  <h2 class="headline" id="zone-headline"></h2>
+  <div id="zone-bars"></div>
+  <div class="next-line tappable" id="open-zones">Zonen, Grenzen und Tempo <span class="chev">⌄</span></div>
+  <div class="expand-row" id="exp-zones"><div class="expand-inner"><div class="panel" id="panel-zones"></div></div></div>
+</section>
+
+<section id="s-coach">
+  <div class="eyebrow">Coach-Analyse</div>
+  <div class="coachcard">
+    <div class="coachhead"><span class="ring"></span><span class="name">Befund</span><span class="src">aus deinen Rohdaten</span></div>
+    <div class="coach-body" id="coach-teaser"></div>
+    <button class="coach-btn" id="open-coach">Mehr dazu</button>
+  </div>
+  <div class="expand-row" id="exp-coach"><div class="expand-inner"><div class="panel" id="panel-coach"></div></div></div>
+</section>
+
+<section id="s-bests">
+  <div class="eyebrow">Bestleistungen</div>
+  <div id="pr-list"></div>
+  <div class="next-line tappable" id="open-bests">Alle Strecken und die Vorhersage <span class="chev">⌄</span></div>
+  <div class="expand-row" id="exp-bests"><div class="expand-inner"><div class="panel" id="panel-bests"></div></div></div>
+</section>
+
+<section id="s-thisweek">
+  <div class="eyebrow">Diese Woche</div>
+  <div class="bignum" id="tw-km"></div>
+  <div class="label" id="tw-year"></div>
+  <div class="bubblefield" id="tw-bubbles" style="margin-top:18px;"></div>
+  <div class="next-line tappable" id="open-prev">Sieben Wochen davor <span class="chev">⌄</span></div>
+  <div class="expand-row" id="exp-prev"><div class="expand-inner" id="panel-prev"></div></div>
+</section>
+
+</div>
+
+<script id="page-data" type="application/json">{"meta": {"generated": "2026-09-13T05:15:03.015140", "n_activities": 249, "period_start": "2025-09-13", "period_end": "2026-09-13"}, "athlete": {"rhr": 46.0, "hrmax_measured": 197, "hrmax_profile": null, "hrmax_note": "Kein Maximalpuls im Profil hinterlegt (Standardlücke bei Garmin). Gemessenes Maximum 197 (18.08.2026, Schwimmen, ≥10s gehalten) gilt als Untergrenze.", "vdot": 46, "vdot_date": "2026-08-24", "vdot_source": "Garmin, gemessen", "threshold_pace_s_km": 302, "threshold_pace_source": "coach (gespeicherter Anker)", "gender_assumption": "maennlich (aus Vornamen abgeleitet, TRIMPexp-Koeffizienten 0.64/1.92)", "anchor_trimp": 145.8}, "hr_zones": {"Z1": 88.48, "Z2": 57.05, "Z3": 57.31, "Z4": 3.2}, "hr_zone_pct": {"Z1": 42.9, "Z2": 27.7, "Z3": 27.8, "Z4": 1.6}, "pace_zones": {"E": {"range_s_km": [362, 392], "label": "6:02–6:32/km", "basis": "Faustregel: Schwellenpace + 60–90 s/km"}, "M": {"pace_s_km": 339.1, "label": "5:39/km", "basis": "System-Rennäquivalent aus VO2max 46 (Garmin, 24.08.2026)"}, "T": {"pace_s_km": 302, "label": "5:02/km", "basis": "gespeicherter Schwellen-Pace (Quelle: Coach-Eintrag)"}, "I": {"pace_s_km": 285.4, "label": "4:45/km", "basis": "System 5-km-äquivalent aus VO2max 46"}, "R": {"pace_s_km": null, "label": "nicht verfügbar", "basis": "kein Meilen-/1500m-äquivalent im Datenbestand"}}, "easy_pct": 73, "daily": {"days": ["2025-09-13", "2025-09-14", "2025-09-15", "2025-09-16", "2025-09-17", "2025-09-18", "2025-09-19", "2025-09-20", "2025-09-21", "2025-09-22", "2025-09-23", "2025-09-24", "2025-09-25", "2025-09-26", "2025-09-27", "2025-09-28", "2025-09-29", "2025-09-30", "2025-10-01", "2025-10-02", "2025-10-03", "2025-10-04", "2025-10-05", "2025-10-06", "2025-10-07", "2025-10-08", "2025-10-09", "2025-10-10", "2025-10-11", "2025-10-12", "2025-10-13", "2025-10-14", "2025-10-15", "2025-10-16", "2025-10-17", "2025-10-18", "2025-10-19", "2025-10-20", "2025-10-21", "2025-10-22", "2025-10-23", "2025-10-24", "2025-10-25", "2025-10-26", "2025-10-27", "2025-10-28", "2025-10-29", "2025-10-30", "2025-10-31", "2025-11-01", "2025-11-02", "2025-11-03", "2025-11-04", "2025-11-05", "2025-11-06", "2025-11-07", "2025-11-08", "2025-11-09", "2025-11-10", "2025-11-11", "2025-11-12", "2025-11-13", "2025-11-14", "2025-11-15", "2025-11-16", "2025-11-17", "2025-11-18", "2025-11-19", "2025-11-20", "2025-11-21", "2025-11-22", "2025-11-23", "2025-11-24", "2025-11-25", "2025-11-26", "2025-11-27", "2025-11-28", "2025-11-29", "2025-11-30", "2025-12-01", "2025-12-02", "2025-12-03", "2025-12-04", "2025-12-05", "2025-12-06", "2025-12-07", "2025-12-08", "2025-12-09", "2025-12-10", "2025-12-11", "2025-12-12", "2025-12-13", "2025-12-14", "2025-12-15", "2025-12-16", "2025-12-17", "2025-12-18", "2025-12-19", "2025-12-20", "2025-12-21", "2025-12-22", "2025-12-23", "2025-12-24", "2025-12-25", "2025-12-26", "2025-12-27", "2025-12-28", "2025-12-29", "2025-12-30", "2025-12-31", "2026-01-01", "2026-01-02", "2026-01-03", "2026-01-04", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-08", "2026-01-09", "2026-01-10", "2026-01-11", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-17", "2026-01-18", "2026-01-19", "2026-01-20", "2026-01-21", "2026-01-22", "2026-01-23", "2026-01-24", "2026-01-25", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-01-31", "2026-02-01", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-07", "2026-02-08", "2026-02-09", "2026-02-10", "2026-02-11", "2026-02-12", "2026-02-13", "2026-02-14", "2026-02-15", "2026-02-16", "2026-02-17", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-21", "2026-02-22", "2026-02-23", "2026-02-24", "2026-02-25", "2026-02-26", "2026-02-27", "2026-02-28", "2026-03-01", "2026-03-02", "2026-03-03", "2026-03-04", "2026-03-05", "2026-03-06", "2026-03-07", "2026-03-08", "2026-03-09", "2026-03-10", "2026-03-11", "2026-03-12", "2026-03-13", "2026-03-14", "2026-03-15", "2026-03-16", "2026-03-17", "2026-03-18", "2026-03-19", "2026-03-20", "2026-03-21", "2026-03-22", "2026-03-23", "2026-03-24", "2026-03-25", "2026-03-26", "2026-03-27", "2026-03-28", "2026-03-29", "2026-03-30", "2026-03-31", "2026-04-01", "2026-04-02", "2026-04-03", "2026-04-04", "2026-04-05", "2026-04-06", "2026-04-07", "2026-04-08", "2026-04-09", "2026-04-10", "2026-04-11", "2026-04-12", "2026-04-13", "2026-04-14", "2026-04-15", "2026-04-16", "2026-04-17", "2026-04-18", "2026-04-19", "2026-04-20", "2026-04-21", "2026-04-22", "2026-04-23", "2026-04-24", "2026-04-25", "2026-04-26", "2026-04-27", "2026-04-28", "2026-04-29", "2026-04-30", "2026-05-01", "2026-05-02", "2026-05-03", "2026-05-04", "2026-05-05", "2026-05-06", "2026-05-07", "2026-05-08", "2026-05-09", "2026-05-10", "2026-05-11", "2026-05-12", "2026-05-13", "2026-05-14", "2026-05-15", "2026-05-16", "2026-05-17", "2026-05-18", "2026-05-19", "2026-05-20", "2026-05-21", "2026-05-22", "2026-05-23", "2026-05-24", "2026-05-25", "2026-05-26", "2026-05-27", "2026-05-28", "2026-05-29", "2026-05-30", "2026-05-31", "2026-06-01", "2026-06-02", "2026-06-03", "2026-06-04", "2026-06-05", "2026-06-06", "2026-06-07", "2026-06-08", "2026-06-09", "2026-06-10", "2026-06-11", "2026-06-12", "2026-06-13", "2026-06-14", "2026-06-15", "2026-06-16", "2026-06-17", "2026-06-18", "2026-06-19", "2026-06-20", "2026-06-21", "2026-06-22", "2026-06-23", "2026-06-24", "2026-06-25", "2026-06-26", "2026-06-27", "2026-06-28", "2026-06-29", "2026-06-30", "2026-07-01", "2026-07-02", "2026-07-03", "2026-07-04", "2026-07-05", "2026-07-06", "2026-07-07", "2026-07-08", "2026-07-09", "2026-07-10", "2026-07-11", "2026-07-12", "2026-07-13", "2026-07-14", "2026-07-15", "2026-07-16", "2026-07-17", "2026-07-18", "2026-07-19", "2026-07-20", "2026-07-21", "2026-07-22", "2026-07-23", "2026-07-24", "2026-07-25", "2026-07-26", "2026-07-27", "2026-07-28", "2026-07-29", "2026-07-30", "2026-07-31", "2026-08-01", "2026-08-02", "2026-08-03", "2026-08-04", "2026-08-05", "2026-08-06", "2026-08-07", "2026-08-08", "2026-08-09", "2026-08-10", "2026-08-11", "2026-08-12", "2026-08-13", "2026-08-14", "2026-08-15", "2026-08-16", "2026-08-17", "2026-08-18", "2026-08-19", "2026-08-20", "2026-08-21", "2026-08-22", "2026-08-23", "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28", "2026-08-29", "2026-08-30", "2026-08-31", "2026-09-01", "2026-09-02", "2026-09-03", "2026-09-04", "2026-09-05", "2026-09-06", "2026-09-07", "2026-09-08", "2026-09-09", "2026-09-10", "2026-09-11", "2026-09-12", "2026-09-13"], "load": [49.5, 0.0, 109.5, 12.4, 18.4, 46.4, 54.5, 77.7, 71.0, 100.0, 35.4, 63.1, 0.0, 91.7, 36.5, 59.3, 38.0, 38.4, 71.7, 52.0, 91.3, 0.0, 0.0, 23.7, 91.1, 19.3, 53.3, 61.0, 44.2, 0.0, 60.6, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 16.7, 1.7, 0.0, 0.0, 69.8, 22.7, 0.0, 99.8, 49.3, 0.0, 21.9, 51.3, 0.0, 0.0, 56.9, 124.0, 24.9, 16.3, 31.2, 43.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 48.9, 0.0, 19.2, 41.4, 27.0, 40.1, 0.0, 66.1, 52.2, 24.7, 46.4, 83.1, 0.0, 0.0, 0.0, 0.0, 62.1, 87.2, 0.0, 0.0, 0.0, 0.0, 35.2, 0.0, 30.6, 19.7, 10.2, 0.0, 69.6, 34.0, 50.9, 23.3, 0.0, 22.0, 0.0, 0.0, 23.8, 42.6, 26.1, 44.5, 36.5, 0.0, 100.7, 28.3, 58.2, 0.0, 32.2, 0.0, 40.9, 94.1, 20.2, 33.0, 0.0, 63.1, 0.0, 0.0, 0.0, 33.8, 41.2, 58.9, 34.8, 50.2, 82.5, 0.0, 87.9, 46.6, 51.6, 19.6, 48.7, 0.0, 81.7, 36.1, 77.8, 60.3, 39.7, 36.7, 63.8, 0.0, 43.9, 41.3, 28.3, 33.6, 24.5, 40.9, 36.1, 45.2, 61.9, 20.9, 0.0, 75.4, 49.7, 0.0, 28.3, 18.3, 10.5, 44.6, 39.0, 12.4, 0.0, 36.0, 0.0, 19.8, 26.1, 0.0, 19.3, 14.5, 72.0, 14.3, 24.2, 56.6, 20.9, 26.1, 27.5, 35.6, 117.7, 0.0, 13.1, 24.1, 72.9, 18.4, 66.3, 65.0, 63.6, 76.3, 86.0, 61.1, 47.2, 0.0, 61.1, 68.1, 49.2, 112.3, 117.3, 124.0, 42.5, 0.0, 70.2, 32.5, 0.0, 27.8, 117.0, 29.6, 38.7, 63.1, 29.2, 0.0, 0.0, 0.0, 32.4, 41.1, 68.3, 0.0, 0.0, 46.2, 0.0, 43.6, 28.7, 0.0, 0.0, 0.0, 0.0, 0.0, 26.5, 94.7, 66.4, 34.8, 0.0, 45.1, 0.0, 43.1, 96.4, 0.0, 0.0, 56.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], "fitness": [1.2, 1.2, 3.7, 3.9, 4.3, 5.3, 6.5, 8.2, 9.6, 11.8, 12.4, 13.6, 13.2, 15.1, 15.6, 16.7, 17.2, 17.7, 19.0, 19.8, 21.5, 20.9, 20.4, 20.5, 22.2, 22.1, 22.9, 23.8, 24.3, 23.7, 24.6, 24.0, 23.4, 22.9, 22.3, 21.8, 21.3, 21.2, 20.7, 20.2, 19.7, 20.9, 21.0, 20.5, 22.3, 23.0, 22.4, 22.4, 23.1, 22.6, 22.0, 22.9, 25.3, 25.3, 25.0, 25.2, 25.6, 25.0, 24.4, 23.8, 23.3, 22.7, 22.2, 21.6, 21.1, 20.6, 20.1, 19.7, 19.2, 18.7, 18.3, 17.8, 17.4, 17.0, 16.6, 16.2, 15.8, 15.4, 15.1, 14.7, 14.4, 14.0, 13.7, 13.4, 13.0, 12.7, 12.4, 12.1, 11.8, 11.6, 11.3, 11.0, 10.8, 10.5, 10.3, 10.0, 9.8, 9.5, 9.3, 9.1, 8.9, 8.7, 8.5, 8.3, 8.1, 7.9, 7.7, 7.5, 7.3, 7.1, 7.0, 6.8, 6.6, 6.5, 6.3, 6.2, 6.0, 5.9, 5.8, 5.6, 5.5, 5.3, 5.2, 5.1, 5.0, 4.9, 4.7, 4.6, 4.5, 4.4, 4.3, 4.2, 4.1, 4.0, 3.9, 3.8, 3.7, 3.6, 3.6, 3.5, 3.4, 3.3, 3.2, 3.1, 3.1, 3.0, 2.9, 2.9, 2.8, 2.7, 2.7, 2.6, 2.5, 2.5, 2.4, 2.4, 2.3, 2.2, 2.2, 2.1, 2.1, 2.0, 2.0, 1.9, 1.9, 1.9, 1.8, 1.8, 1.7, 1.7, 1.6, 1.6, 1.6, 1.5, 1.5, 1.5, 1.4, 1.4, 1.4, 1.3, 1.3, 1.3, 1.2, 2.4, 2.3, 2.7, 3.6, 4.2, 5.0, 4.9, 6.4, 7.5, 7.9, 8.8, 10.6, 10.3, 10.1, 9.8, 9.6, 10.8, 12.7, 12.4, 12.1, 11.8, 11.5, 12.1, 11.8, 12.2, 12.4, 12.3, 12.1, 13.4, 13.9, 14.8, 15.0, 14.6, 14.8, 14.5, 14.1, 14.3, 15.0, 15.3, 16.0, 16.5, 16.1, 18.1, 18.3, 19.3, 18.8, 19.1, 18.7, 19.2, 21.0, 21.0, 21.3, 20.8, 21.8, 21.2, 20.7, 20.2, 20.6, 21.1, 22.0, 22.3, 22.9, 24.4, 23.8, 25.3, 25.8, 26.4, 26.3, 26.8, 26.2, 27.5, 27.7, 28.9, 29.6, 29.9, 30.0, 30.8, 30.1, 30.4, 30.7, 30.6, 30.7, 30.5, 30.8, 30.9, 31.3, 32.0, 31.7, 31.0, 32.0, 32.4, 31.7, 31.6, 31.3, 30.8, 31.1, 31.3, 30.9, 30.1, 30.3, 29.5, 29.3, 29.2, 28.5, 28.3, 28.0, 29.0, 28.7, 28.6, 29.2, 29.0, 29.0, 28.9, 29.1, 31.2, 30.5, 30.0, 29.9, 30.9, 30.6, 31.5, 32.3, 33.0, 34.1, 35.3, 35.9, 36.2, 35.3, 35.9, 36.7, 37.0, 38.8, 40.7, 42.6, 42.6, 41.6, 42.3, 42.1, 41.1, 40.7, 42.6, 42.3, 42.2, 42.7, 42.4, 41.3, 40.4, 39.4, 39.2, 39.3, 40.0, 39.0, 38.1, 38.3, 37.4, 37.5, 37.3, 36.4, 35.6, 34.7, 33.9, 33.1, 32.9, 34.4, 35.1, 35.1, 34.3, 34.6, 33.7, 34.0, 35.4, 34.6, 33.8, 34.3, 33.5, 32.7, 31.9, 31.2, 30.4, 29.7, 29.0, 28.3, 27.6], "fatigue": [7.1, 6.1, 20.8, 19.6, 19.5, 23.3, 27.8, 34.9, 40.1, 48.6, 46.7, 49.1, 42.1, 49.2, 47.4, 49.1, 47.5, 46.2, 49.8, 50.1, 56.0, 48.0, 41.2, 38.7, 46.2, 42.3, 43.9, 46.3, 46.0, 39.5, 42.5, 36.4, 31.2, 26.8, 22.9, 19.7, 16.9, 16.8, 14.7, 12.6, 10.8, 19.2, 19.7, 16.9, 28.7, 31.7, 27.1, 26.4, 30.0, 25.7, 22.0, 27.0, 40.8, 38.6, 35.4, 34.8, 36.0, 30.9, 26.4, 22.7, 19.4, 16.7, 14.3, 12.2, 10.5, 9.0, 7.7, 6.6, 5.7, 4.9, 4.2, 3.6, 3.1, 2.6, 2.2, 1.9, 1.6, 1.4, 1.2, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.4, 0.3, 0.3, 0.2, 0.2, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.0, 6.0, 7.9, 12.7, 14.7, 18.3, 15.7, 22.9, 27.1, 26.8, 29.6, 37.2, 31.9, 27.3, 23.4, 20.1, 26.1, 34.8, 29.8, 25.6, 21.9, 18.8, 21.1, 18.1, 19.9, 19.9, 18.5, 15.8, 23.5, 25.0, 28.7, 27.9, 23.9, 23.7, 20.3, 17.4, 18.3, 21.8, 22.4, 25.6, 27.1, 23.2, 34.3, 33.4, 37.0, 31.7, 31.8, 27.2, 29.2, 38.5, 35.9, 35.4, 30.4, 35.1, 30.0, 25.8, 22.1, 23.7, 26.2, 30.9, 31.5, 34.1, 41.1, 35.2, 42.7, 43.3, 44.5, 40.9, 42.0, 36.0, 42.6, 41.6, 46.8, 48.7, 47.4, 45.9, 48.5, 41.5, 41.9, 41.8, 39.8, 39.0, 36.9, 37.5, 37.3, 38.4, 41.8, 38.8, 33.2, 39.3, 40.8, 34.9, 34.0, 31.7, 28.7, 31.0, 32.1, 29.3, 25.1, 26.7, 22.9, 22.4, 22.9, 19.7, 19.6, 18.9, 26.5, 24.7, 24.7, 29.2, 28.0, 27.8, 27.7, 28.8, 41.5, 35.6, 32.4, 31.2, 37.2, 34.5, 39.0, 42.7, 45.7, 50.1, 55.2, 56.1, 54.8, 47.0, 49.0, 51.7, 51.4, 60.1, 68.2, 76.2, 71.4, 61.2, 62.5, 58.2, 49.9, 46.7, 56.8, 52.9, 50.9, 52.6, 49.3, 42.2, 36.2, 31.0, 31.2, 32.6, 37.7, 32.3, 27.7, 30.4, 26.0, 28.5, 28.6, 24.5, 21.0, 18.0, 15.4, 13.2, 15.1, 26.5, 32.2, 32.6, 27.9, 30.4, 26.0, 28.5, 38.2, 32.7, 28.0, 32.0, 27.5, 23.5, 20.2, 17.3, 14.8, 12.7, 10.9, 9.3, 8.0], "fresh": [-5.9, -4.9, -17.1, -15.7, -15.2, -18.0, -21.3, -26.7, -30.4, -36.8, -34.4, -35.5, -28.8, -34.0, -31.7, -32.4, -30.3, -28.5, -30.9, -30.4, -34.6, -27.1, -20.7, -18.1, -23.9, -20.2, -21.0, -22.6, -21.8, -15.8, -17.9, -12.4, -7.8, -3.9, -0.6, 2.1, 4.4, 4.3, 6.0, 7.6, 9.0, 1.7, 1.3, 3.6, -6.4, -8.7, -4.7, -4.0, -6.8, -3.1, 0.0, -4.1, -15.6, -13.3, -10.3, -9.6, -10.4, -5.8, -2.0, 1.2, 3.8, 6.1, 7.9, 9.4, 10.6, 11.6, 12.4, 13.0, 13.5, 13.9, 14.1, 14.3, 14.4, 14.4, 14.4, 14.3, 14.2, 14.0, 13.9, 13.7, 13.5, 13.3, 13.0, 12.8, 12.6, 12.3, 12.1, 11.8, 11.6, 11.3, 11.1, 10.9, 10.6, 10.4, 10.2, 9.9, 9.7, 9.5, 9.3, 9.0, 8.8, 8.6, 8.4, 8.2, 8.0, 7.8, 7.7, 7.5, 7.3, 7.1, 7.0, 6.8, 6.6, 6.5, 6.3, 6.2, 6.0, 5.9, 5.7, 5.6, 5.5, 5.3, 5.2, 5.1, 5.0, 4.9, 4.7, 4.6, 4.5, 4.4, 4.3, 4.2, 4.1, 4.0, 3.9, 3.8, 3.7, 3.6, 3.6, 3.5, 3.4, 3.3, 3.2, 3.1, 3.1, 3.0, 2.9, 2.9, 2.8, 2.7, 2.7, 2.6, 2.5, 2.5, 2.4, 2.4, 2.3, 2.2, 2.2, 2.1, 2.1, 2.0, 2.0, 1.9, 1.9, 1.9, 1.8, 1.8, 1.7, 1.7, 1.6, 1.6, 1.6, 1.5, 1.5, 1.5, 1.4, 1.4, 1.4, 1.3, 1.3, 1.3, 1.2, -4.6, -3.7, -5.2, -9.0, -10.5, -13.3, -10.8, -16.5, -19.6, -18.9, -20.8, -26.6, -21.6, -17.3, -13.6, -10.5, -15.2, -22.1, -17.5, -13.5, -10.1, -7.3, -9.1, -6.3, -7.7, -7.5, -6.1, -3.8, -10.1, -11.1, -13.9, -12.9, -9.3, -8.9, -5.8, -3.3, -4.0, -6.8, -7.1, -9.6, -10.6, -7.2, -16.2, -15.1, -17.7, -12.9, -12.6, -8.5, -10.0, -17.5, -14.9, -14.2, -9.6, -13.3, -8.8, -5.0, -1.8, -3.2, -5.2, -8.9, -9.2, -11.2, -16.7, -11.4, -17.4, -17.5, -18.1, -14.7, -15.2, -9.9, -15.1, -13.9, -17.9, -19.1, -17.6, -15.9, -17.6, -11.4, -11.4, -11.1, -9.2, -8.3, -6.3, -6.7, -6.3, -7.1, -9.8, -7.0, -2.3, -7.2, -8.3, -3.3, -2.4, -0.5, 2.1, 0.1, -0.8, 1.5, 5.0, 3.6, 6.7, 6.9, 6.3, 8.9, 8.7, 9.1, 2.6, 3.9, 3.9, 0.0, 1.0, 1.2, 1.2, 0.3, -10.3, -5.1, -2.3, -1.3, -6.2, -3.8, -7.5, -10.4, -12.7, -16.0, -19.9, -20.2, -18.6, -11.7, -13.1, -15.0, -14.4, -21.3, -27.6, -33.6, -28.8, -19.6, -20.2, -16.1, -8.8, -6.0, -14.2, -10.6, -8.7, -9.9, -6.9, -0.9, 4.2, 8.4, 8.0, 6.6, 2.2, 6.7, 10.4, 7.9, 11.3, 9.0, 8.7, 11.9, 14.6, 16.7, 18.5, 19.9, 17.8, 7.9, 3.0, 2.6, 6.4, 4.2, 7.7, 5.5, -2.7, 1.9, 5.7, 2.3, 6.0, 9.2, 11.7, 13.9, 15.6, 17.0, 18.1, 19.0, 19.6]}, "no_record_days": 201, "gap_period": {"start": "2025-11-10", "end": "2026-03-12", "days": 123}, "weekly_chart": [{"week": "2026-06-22", "load": 115.6, "band": 218.2}, {"week": "2026-06-29", "load": 241.6, "band": 173.9}, {"week": "2026-07-06", "load": 281.7, "band": 170.1}, {"week": "2026-07-13", "load": 465.6, "band": 213.0}, {"week": "2026-07-20", "load": 532.1, "band": 329.6}, {"week": "2026-07-27", "load": 289.9, "band": 426.5}, {"week": "2026-08-03", "load": 160.6, "band": 429.2}, {"week": "2026-08-10", "load": 188.0, "band": 327.6}, {"week": "2026-08-17", "load": 72.4, "band": 212.8}, {"week": "2026-08-24", "load": 267.5, "band": 140.3}, {"week": "2026-08-31", "load": 195.5, "band": 175.9}, {"week": "2026-09-07", "load": 0.0, "band": 178.4}], "this_week": [{"date": "2026-09-07", "activities": []}, {"date": "2026-09-08", "activities": []}, {"date": "2026-09-09", "activities": []}, {"date": "2026-09-10", "activities": []}, {"date": "2026-09-11", "activities": []}, {"date": "2026-09-12", "activities": []}, {"date": "2026-09-13", "activities": []}], "prev7": [{"week_start": "2026-08-31", "week_end": "2026-09-06", "run_km": 8.0, "days": [{"date": "2026-08-31", "activities": [{"sport": "LAP_SWIMMING", "duration_s": 1417, "distance_m": 1200}, {"sport": "TREADMILL_RUNNING", "duration_s": 1507, "distance_m": 4268.39}]}, {"date": "2026-09-01", "activities": [{"sport": "INDOOR_CYCLING", "duration_s": 7207, "distance_m": 78107.67}]}, {"date": "2026-09-02", "activities": []}, {"date": "2026-09-03", "activities": []}, {"date": "2026-09-04", "activities": [{"sport": "LAP_SWIMMING", "duration_s": 1860, "distance_m": 1600}, {"sport": "TREADMILL_RUNNING", "duration_s": 1500, "distance_m": 3697.48}]}, {"date": "2026-09-05", "activities": []}, {"date": "2026-09-06", "activities": []}]}, {"week_start": "2026-08-24", "week_end": "2026-08-30", "run_km": 4.6, "days": [{"date": "2026-08-24", "activities": [{"sport": "RUNNING", "duration_s": 1832, "distance_m": 4604.8}]}, {"date": "2026-08-25", "activities": [{"sport": "ROAD_BIKING", "duration_s": 3500, "distance_m": 24481.8}, {"sport": "LAP_SWIMMING", "duration_s": 1855, "distance_m": 1466.52}]}, {"date": "2026-08-26", "activities": [{"sport": "WALKING", "duration_s": 4683, "distance_m": 7654.6}, {"sport": "LAP_SWIMMING", "duration_s": 3054, "distance_m": 2400}]}, {"date": "2026-08-27", "activities": [{"sport": "WALKING", "duration_s": 944, "distance_m": 1480.67}, {"sport": "LAP_SWIMMING", "duration_s": 1968, "distance_m": 1500}, {"sport": "WALKING", "duration_s": 1004, "distance_m": 1496.12}]}, {"date": "2026-08-28", "activities": []}, {"date": "2026-08-29", "activities": [{"sport": "LAP_SWIMMING", "duration_s": 2671, "distance_m": 2000}]}, {"date": "2026-08-30", "activities": []}]}, {"week_start": "2026-08-17", "week_end": "2026-08-23", "run_km": 0.0, "days": [{"date": "2026-08-17", "activities": [{"sport": "ROAD_BIKING", "duration_s": 3112, "distance_m": 24314.86}]}, {"date": "2026-08-18", "activities": [{"sport": "LAP_SWIMMING", "duration_s": 1553, "distance_m": 999.9}]}, {"date": "2026-08-19", "activities": []}, {"date": "2026-08-20", "activities": []}, {"date": "2026-08-21", "activities": []}, {"date": "2026-08-22", "activities": []}, {"date": "2026-08-23", "activities": []}]}, {"week_start": "2026-08-10", "week_end": "2026-08-16", "run_km": 17.4, "days": [{"date": "2026-08-10", "activities": [{"sport": "Running", "duration_s": 2424.73193359375, "distance_m": 6407.009765625}]}, {"date": "2026-08-11", "activities": [{"sport": "indoor_cycling", "duration_s": 3000, "distance_m": 24210.990234375}]}, {"date": "2026-08-12", "activities": [{"sport": "Running", "duration_s": 3610.633056640625, "distance_m": 11005.0400390625}]}, {"date": "2026-08-13", "activities": []}, {"date": "2026-08-14", "activities": []}, {"date": "2026-08-15", "activities": [{"sport": "indoor_cycling", "duration_s": 4200, "distance_m": 31266.990234375}]}, {"date": "2026-08-16", "activities": []}]}, {"week_start": "2026-08-03", "week_end": "2026-08-09", "run_km": 16.0, "days": [{"date": "2026-08-03", "activities": [{"sport": "Swimming", "duration_s": 2763.77197265625, "distance_m": 1733.160095214844}, {"sport": "Swimming", "duration_s": 126.16600036621094, "distance_m": 1633.1700439453125}]}, {"date": "2026-08-04", "activities": [{"sport": "indoor_cycling", "duration_s": 3900, "distance_m": 30560.990234375}]}, {"date": "2026-08-05", "activities": [{"sport": "Running", "duration_s": 3334.885009765625, "distance_m": 10006.4501953125}]}, {"date": "2026-08-06", "activities": [{"sport": "Running", "duration_s": 2132.718994140625, "distance_m": 6007.8701171875}]}, {"date": "2026-08-07", "activities": []}, {"date": "2026-08-08", "activities": []}, {"date": "2026-08-09", "activities": []}]}, {"week_start": "2026-07-27", "week_end": "2026-08-02", "run_km": 27.3, "days": [{"date": "2026-07-27", "activities": [{"sport": "Swimming", "duration_s": 3417.345947265625, "distance_m": 2333.10009765625}]}, {"date": "2026-07-28", "activities": []}, {"date": "2026-07-29", "activities": [{"sport": "Running", "duration_s": 3629.511962890625, "distance_m": 10304.4296875}]}, {"date": "2026-07-30", "activities": [{"sport": "Swimming", "duration_s": 2808.887939453125, "distance_m": 2199.780029296875}]}, {"date": "2026-07-31", "activities": []}, {"date": "2026-08-01", "activities": [{"sport": "indoor_cycling", "duration_s": 4200, "distance_m": 31356}]}, {"date": "2026-08-02", "activities": [{"sport": "Running", "duration_s": 6053.05615234375, "distance_m": 17005.7109375}]}]}, {"week_start": "2026-07-20", "week_end": "2026-07-26", "run_km": 47.6, "days": [{"date": "2026-07-20", "activities": []}, {"date": "2026-07-21", "activities": [{"sport": "Running", "duration_s": 3619.64501953125, "distance_m": 10504.7001953125}]}, {"date": "2026-07-22", "activities": [{"sport": "Running", "duration_s": 3444.5029296875, "distance_m": 10304.0703125}]}, {"date": "2026-07-23", "activities": [{"sport": "indoor_cycling", "duration_s": 3600, "distance_m": 26006}, {"sport": "Walking", "duration_s": 3264.56396484375, "distance_m": 4833.83984375}]}, {"date": "2026-07-24", "activities": [{"sport": "Running", "duration_s": 2178.366943359375, "distance_m": 5804.1201171875}, {"sport": "Walking", "duration_s": 3014.4150390625, "distance_m": 4803.60986328125}, {"sport": "indoor_cycling", "duration_s": 3180, "distance_m": 24298.990234375}]}, {"date": "2026-07-25", "activities": [{"sport": "Walking", "duration_s": 3212.27197265625, "distance_m": 4812.0400390625}, {"sport": "indoor_cycling", "duration_s": 3600, "distance_m": 27986.990234375}, {"sport": "Swimming", "duration_s": 3457.652099609375, "distance_m": 2433.090087890625}]}, {"date": "2026-07-26", "activities": [{"sport": "Running", "duration_s": 8843.4833984375, "distance_m": 21005.990234375}]}]}], "week_status": {"week": "2026-09-07", "load": 0.0, "band_avg": 178.4, "status": "unter"}, "bests": {"1": [286.5999999999999, "2026-04-23", "9637A226-D5EC-4B0B-B6C2-DFF6E8EC8962"], "5": [1500.0, "2026-05-27", "A4406C2C-F441-4D7E-8A72-AC81420E3757"], "10": [3280.9999999999995, "2026-08-12", "1D8BA65F-DC7E-4FC9-B135-6DF716D1D2D3"], "16.09": [5726.430999999999, "2026-08-02", "4E2168B6-9B71-4881-959A-182C8EA5CB2D"], "21.0975": [8882.0475, "2026-07-26", "BA3AF418-4F39-405D-BD8C-74A3134B0564"]}, "predictions": {"hm": {"riegel": "2:00:39", "daniels_system": "1:51:09"}, "marathon": {"riegel": "4:11:33", "daniels_system": "3:58:30"}}, "last_run": {"date": "2026-08-24", "name": "Wiedereinstieg nach Achillessehnenreizung", "sport": "RUNNING", "duration_s": 1832, "elapsed_s": 1998, "distance_m": 4604.8, "avg_hr": 138, "max_hr": 153, "avg_pace_s_km": 397.8, "belastung": 26.5, "trimp": 38.67, "splits": [{"km": 1, "avgHr": 131, "durationSec": 382}, {"km": 2, "avgHr": 142, "durationSec": 397}, {"km": 3, "avgHr": 139, "durationSec": 396}, {"km": 4, "avgHr": 140, "durationSec": 408}, {"km": 5, "avgHr": 140, "durationSec": 249, "partial_m": 603.9}], "laps": [{"idx": 1, "durationSec": 1500, "distance_m": 3798.13, "avgHr": 138, "pace_s_km": 394.9}, {"idx": 2, "durationSec": 331, "distance_m": 806.67, "avgHr": 140, "pace_s_km": 410.4}], "note": "Zwangspause von ca. 2:45 wegen Telefonat.", "rpe": 3, "feel": 5, "elevation_gain_m": 17, "elevation_loss_m": 14, "record_sample_t": [0, 200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800]}, "activities_summary": [{"date": "2026-06-20", "sport": "Cycling", "duration_s": 1500, "distance_m": 11335, "belastung": 12.4, "avg_hr": 116}, {"date": "2026-06-19", "sport": "TraditionalStrengthTraining", "duration_s": 3927, "distance_m": null, "belastung": 39.0, "avg_hr": 123}, {"date": "2026-06-18", "sport": "Cycling", "duration_s": 2700.337831020355, "distance_m": null, "belastung": 44.6, "avg_hr": 144}, {"date": "2026-06-17", "sport": "TraditionalStrengthTraining", "duration_s": 3514.831125974655, "distance_m": null, "belastung": 10.5, "avg_hr": 84}, {"date": "2026-06-16", "sport": "Cycling", "duration_s": 2103.100522041321, "distance_m": null, "belastung": 18.3, "avg_hr": 118}, {"date": "2026-06-15", "sport": "TraditionalStrengthTraining", "duration_s": 4040.3243709802628, "distance_m": null, "belastung": 28.3, "avg_hr": 110}, {"date": "2026-06-13", "sport": "TraditionalStrengthTraining", "duration_s": 5558.269997954369, "distance_m": null, "belastung": 49.7, "avg_hr": 119}, {"date": "2026-06-12", "sport": "Running", "duration_s": 3859.9818531274796, "distance_m": 11130.295159222047, "belastung": 75.4, "avg_hr": 151}, {"date": "2026-06-10", "sport": "TraditionalStrengthTraining", "duration_s": 4011.441158056259, "distance_m": null, "belastung": 20.9, "avg_hr": 100}, {"date": "2026-06-09", "sport": "Running", "duration_s": 3933.5794240236282, "distance_m": 11013.27762786101, "belastung": 61.9, "avg_hr": 142}, {"date": "2026-06-08", "sport": "TraditionalStrengthTraining", "duration_s": 5713.333880066872, "distance_m": null, "belastung": 35.6, "avg_hr": 106}, {"date": "2026-06-08", "sport": "HighIntensityIntervalTraining", "duration_s": 605.7508109807968, "distance_m": null, "belastung": 9.6, "avg_hr": 142}, {"date": "2026-06-07", "sport": "Running", "duration_s": 3551.0608999729156, "distance_m": 9311.173029003665, "belastung": 36.1, "avg_hr": 131}, {"date": "2026-06-06", "sport": "TraditionalStrengthTraining", "duration_s": 4448.62965798378, "distance_m": null, "belastung": 29.4, "avg_hr": 108}, {"date": "2026-06-06", "sport": "HighIntensityIntervalTraining", "duration_s": 607.3754199743271, "distance_m": null, "belastung": 11.5, "avg_hr": 150}, {"date": "2026-06-05", "sport": "Running", "duration_s": 2345.0794639587402, "distance_m": 6004.479955908683, "belastung": 24.5, "avg_hr": 129}, {"date": "2026-06-04", "sport": "TraditionalStrengthTraining", "duration_s": 5901.543302059174, "distance_m": null, "belastung": 33.6, "avg_hr": 103}, {"date": "2026-06-03", "sport": "Running", "duration_s": 2849.9434340000153, "distance_m": 7007.754735901487, "belastung": 28.3, "avg_hr": 123}, {"date": "2026-06-02", "sport": "Running", "duration_s": 2308.7980909347534, "distance_m": 7037.062286100001, "belastung": 41.3, "avg_hr": 147}, {"date": "2026-06-01", "sport": "TraditionalStrengthTraining", "duration_s": 5034.31685590744, "distance_m": null, "belastung": 43.9, "avg_hr": 118}, {"date": "2026-05-30", "sport": "Running", "duration_s": 5528.130874037743, "distance_m": 14010.256614923012, "belastung": 63.8, "avg_hr": 129}, {"date": "2026-05-29", "sport": "Running", "duration_s": 3453.6151410341263, "distance_m": 8068.3820373193585, "belastung": 36.7, "avg_hr": 127}, {"date": "2026-05-28", "sport": "TraditionalStrengthTraining", "duration_s": 3156.4392240047455, "distance_m": null, "belastung": 19.7, "avg_hr": 106}, {"date": "2026-05-28", "sport": "TraditionalStrengthTraining", "duration_s": 3205.7307200431824, "distance_m": null, "belastung": 20.0, "avg_hr": 106}, {"date": "2026-05-27", "sport": "Running", "duration_s": 3052.801164984703, "distance_m": 9165.792296854894, "belastung": 56.4, "avg_hr": 148}, {"date": "2026-05-27", "sport": "Cycling", "duration_s": 1602.316279053688, "distance_m": 3686.413215015162, "belastung": 3.9, "avg_hr": 79}, {"date": "2026-05-26", "sport": "Running", "duration_s": 4247.25362098217, "distance_m": 11910.641562817153, "belastung": 73.5, "avg_hr": 145}, {"date": "2026-05-26", "sport": "Walking", "duration_s": 975.2408102750778, "distance_m": 1000.9549308330759, "belastung": 4.3, "avg_hr": 95}, {"date": "2026-05-25", "sport": "TraditionalStrengthTraining", "duration_s": 3900.1438759565353, "distance_m": null, "belastung": 19.0, "avg_hr": 98}, {"date": "2026-05-25", "sport": "TraditionalStrengthTraining", "duration_s": 3492, "distance_m": null, "belastung": 17.0, "avg_hr": 98}, {"date": "2026-05-24", "sport": "Running", "duration_s": 4856.4489179849625, "distance_m": 14010.789690309903, "belastung": 81.7, "avg_hr": 143}, {"date": "2026-05-22", "sport": "Running", "duration_s": 2751.3837069272995, "distance_m": 7518.772676886874, "belastung": 37.9, "avg_hr": 136}, {"date": "2026-05-22", "sport": "Cycling", "duration_s": 926.395570397377, "distance_m": 2248.8655442375116, "belastung": 3.0, "avg_hr": 86}, {"date": "2026-05-22", "sport": "Cycling", "duration_s": 240.56095802783966, "distance_m": 1022.9065511473325, "belastung": 1.4, "avg_hr": 104}, {"date": "2026-05-22", "sport": "Cycling", "duration_s": 280.4951522350311, "distance_m": 967.2847382570325, "belastung": 2.1, "avg_hr": 112}, {"date": "2026-05-22", "sport": "Cycling", "duration_s": 744.3030519485474, "distance_m": 1367.0045394047045, "belastung": 3.3, "avg_hr": 95}, {"date": "2026-05-22", "sport": "Cycling", "duration_s": 227.0012309551239, "distance_m": 820.2285043705169, "belastung": 1.0, "avg_hr": 96}, {"date": "2026-05-21", "sport": "Cycling", "duration_s": 614.7273594141006, "distance_m": 1761.4400003266712, "belastung": 2.2, "avg_hr": 89}, {"date": "2026-05-21", "sport": "Cycling", "duration_s": 1663.961769104004, "distance_m": 9442.660396124951, "belastung": 17.4, "avg_hr": 125}, {"date": "2026-05-20", "sport": "Running", "duration_s": 3192.1976070404053, "distance_m": 9013.086377313826, "belastung": 51.6, "avg_hr": 142}, {"date": "2026-05-19", "sport": "Running", "duration_s": 2726.575623869896, "distance_m": 8004.613663953924, "belastung": 46.6, "avg_hr": 148}, {"date": "2026-05-18", "sport": "TraditionalStrengthTraining", "duration_s": 4311.757259964943, "distance_m": null, "belastung": 43.9, "avg_hr": 124}, {"date": "2026-05-18", "sport": "Other", "duration_s": 4317, "distance_m": null, "belastung": 44.0, "avg_hr": 124}, {"date": "2026-05-16", "sport": "Running", "duration_s": 5118.876038074493, "distance_m": 14004.680445527427, "belastung": 82.5, "avg_hr": 143}, {"date": "2026-05-15", "sport": "Running", "duration_s": 2806.4407019615173, "distance_m": 8013.220610082382, "belastung": 50.2, "avg_hr": 148}, {"date": "2026-05-14", "sport": "TraditionalStrengthTraining", "duration_s": 4837.851948022842, "distance_m": null, "belastung": 34.8, "avg_hr": 111}, {"date": "2026-05-13", "sport": "Running", "duration_s": 2727, "distance_m": 8014.2, "belastung": 58.9, "avg_hr": 156}, {"date": "2026-05-12", "sport": "Running", "duration_s": 2672, "distance_m": 7515.5, "belastung": 41.2, "avg_hr": 141}, {"date": "2026-05-11", "sport": "TraditionalStrengthTraining", "duration_s": 5420.947518110275, "distance_m": null, "belastung": 33.8, "avg_hr": 106}, {"date": "2026-05-07", "sport": "Running", "duration_s": 2735.8701070547104, "distance_m": 7508.3091072010575, "belastung": 41.1, "avg_hr": 140}, {"date": "2026-05-07", "sport": "TraditionalStrengthTraining", "duration_s": 3742.1079961061478, "distance_m": null, "belastung": 22.0, "avg_hr": 104}, {"date": "2026-05-05", "sport": "Running", "duration_s": 2735.5439109802246, "distance_m": 8139.129515403412, "belastung": 33.0, "avg_hr": 148}, {"date": "2026-05-04", "sport": "TraditionalStrengthTraining", "duration_s": 2379.427536010742, "distance_m": null, "belastung": 20.2, "avg_hr": 117}, {"date": "2026-05-03", "sport": "Running", "duration_s": 5598.787019968033, "distance_m": 15011.167724121013, "belastung": 94.1, "avg_hr": 142}, {"date": "2026-05-02", "sport": "TraditionalStrengthTraining", "duration_s": 4337.058347940445, "distance_m": null, "belastung": 40.9, "avg_hr": 121}, {"date": "2026-04-30", "sport": "Running", "duration_s": 2731.963922023773, "distance_m": 7306.120471623493, "belastung": 32.2, "avg_hr": 138}, {"date": "2026-04-28", "sport": "Running", "duration_s": 3324.3895748853683, "distance_m": 9504.304517229204, "belastung": 58.2, "avg_hr": 144}, {"date": "2026-04-27", "sport": "TraditionalStrengthTraining", "duration_s": 3424.026342988014, "distance_m": null, "belastung": 28.3, "avg_hr": 116}, {"date": "2026-04-26", "sport": "Running", "duration_s": 5152.917197942734, "distance_m": 15025.834068227387, "belastung": 100.7, "avg_hr": 151}, {"date": "2026-04-24", "sport": "TraditionalStrengthTraining", "duration_s": 3824.168436050415, "distance_m": null, "belastung": 31.6, "avg_hr": 116}, {"date": "2026-04-24", "sport": "Cycling", "duration_s": 1261.3287851810455, "distance_m": 2210.354967656912, "belastung": 4.9, "avg_hr": 91}, {"date": "2026-04-23", "sport": "Running", "duration_s": 2392.1198649406433, "distance_m": 7164.1130214714785, "belastung": 44.5, "avg_hr": 149}, {"date": "2026-04-22", "sport": "TraditionalStrengthTraining", "duration_s": 3734.318699002266, "distance_m": null, "belastung": 26.1, "avg_hr": 110}, {"date": "2026-04-21", "sport": "Running", "duration_s": 2769.549565076828, "distance_m": 7512.1522762639215, "belastung": 42.6, "avg_hr": 141}, {"date": "2026-04-20", "sport": "TraditionalStrengthTraining", "duration_s": 3606.987338066101, "distance_m": null, "belastung": 23.8, "avg_hr": 108}, {"date": "2026-04-17", "sport": "TraditionalStrengthTraining", "duration_s": 2817.889643073082, "distance_m": null, "belastung": 22.0, "avg_hr": 114}, {"date": "2026-04-15", "sport": "TraditionalStrengthTraining", "duration_s": 3842.1962060928345, "distance_m": null, "belastung": 23.3, "avg_hr": 105}, {"date": "2026-04-14", "sport": "Running", "duration_s": 3708.348715901375, "distance_m": 9708.01460870367, "belastung": 50.9, "avg_hr": 136}, {"date": "2026-04-13", "sport": "HighIntensityIntervalTraining", "duration_s": 603.7151839733124, "distance_m": null, "belastung": 10.0, "avg_hr": 144}, {"date": "2026-04-13", "sport": "TraditionalStrengthTraining", "duration_s": 4093.4959369897842, "distance_m": null, "belastung": 24.1, "avg_hr": 104}, {"date": "2026-04-12", "sport": "Running", "duration_s": 2256.774300098419, "distance_m": 7412.711752692295, "belastung": 57.9, "avg_hr": 164}, {"date": "2026-04-12", "sport": "Walking", "duration_s": 963.7637430429459, "distance_m": 1346.6266215876094, "belastung": 11.7, "avg_hr": 131}, {"date": "2026-04-10", "sport": "Walking", "duration_s": 3280.0004099607468, "distance_m": 4808.931822705083, "belastung": 10.2, "avg_hr": 85}, {"date": "2026-04-09", "sport": "Walking", "duration_s": 3160.0228049755096, "distance_m": 4792.51955708093, "belastung": 19.7, "avg_hr": 106}, {"date": "2026-04-08", "sport": "Running", "duration_s": 3395.8077911138535, "distance_m": 10009.191704100784, "belastung": 30.6, "avg_hr": 118}, {"date": "2026-04-06", "sport": "HighIntensityIntervalTraining", "duration_s": 721.0129599571228, "distance_m": null, "belastung": 14.9, "avg_hr": 154}, {"date": "2026-04-06", "sport": "TraditionalStrengthTraining", "duration_s": 3347.986913919449, "distance_m": null, "belastung": 20.3, "avg_hr": 105}, {"date": "2026-04-01", "sport": "Running", "duration_s": 5725.524834036827, "distance_m": 13141.847997675795, "belastung": 87.2, "avg_hr": 141}, {"date": "2026-03-31", "sport": "Running", "duration_s": 3258.3710139989853, "distance_m": 9206.436099267245, "belastung": 35.5, "avg_hr": 158}, {"date": "2026-03-31", "sport": "Walking", "duration_s": 3051.0723910331726, "distance_m": 4806.52446231927, "belastung": 26.6, "avg_hr": 118}, {"date": "2026-03-26", "sport": "Running", "duration_s": 4413.376434087753, "distance_m": 12008.363333472516, "belastung": 83.1, "avg_hr": 146}, {"date": "2026-03-25", "sport": "Running", "duration_s": 3076.7918449640274, "distance_m": 7508.119991981177, "belastung": 46.4, "avg_hr": 140}, {"date": "2026-03-24", "sport": "Cycling", "duration_s": 91.09148502349854, "distance_m": null, "belastung": 0.6, "avg_hr": 110}, {"date": "2026-03-24", "sport": "Walking", "duration_s": 3048.8970589637756, "distance_m": 4801.693862421715, "belastung": 14.9, "avg_hr": 98}, {"date": "2026-03-24", "sport": "TraditionalStrengthTraining", "duration_s": 2633.6315519809723, "distance_m": null, "belastung": 9.1, "avg_hr": 88}, {"date": "2026-03-23", "sport": "Pickleball", "duration_s": 3719.5869830846786, "distance_m": null, "belastung": 18.7, "avg_hr": 99}, {"date": "2026-03-23", "sport": "TraditionalStrengthTraining", "duration_s": 3508.180050969124, "distance_m": null, "belastung": 17.1, "avg_hr": 98}, {"date": "2026-03-23", "sport": "HighIntensityIntervalTraining", "duration_s": 964.6210960149765, "distance_m": null, "belastung": 16.3, "avg_hr": 145}, {"date": "2026-03-22", "sport": "Running", "duration_s": 3602.4011350870132, "distance_m": 10886.253914968605, "belastung": 66.1, "avg_hr": 148}, {"date": "2026-03-20", "sport": "HighIntensityIntervalTraining", "duration_s": 920.3789479732513, "distance_m": null, "belastung": 21.2, "avg_hr": 159}, {"date": "2026-03-20", "sport": "Walking", "duration_s": 3264.7300469875336, "distance_m": 5006.559775978226, "belastung": 15.9, "avg_hr": 98}, {"date": "2026-03-20", "sport": "Walking", "duration_s": 349.95418298244476, "distance_m": 333.9317487485823, "belastung": 3.0, "avg_hr": 117}, {"date": "2026-03-19", "sport": "HighIntensityIntervalTraining", "duration_s": 850.7259690761566, "distance_m": null, "belastung": 7.4, "avg_hr": 118}, {"date": "2026-03-19", "sport": "Walking", "duration_s": 2966.590593934059, "distance_m": 4788.464883709457, "belastung": 19.6, "avg_hr": 108}, {"date": "2026-03-18", "sport": "Running", "duration_s": 976.7341899871826, "distance_m": 2618.129412889968, "belastung": 11.5, "avg_hr": 133}, {"date": "2026-03-18", "sport": "Running", "duration_s": 1502.5262069702148, "distance_m": 4630.524348477687, "belastung": 6.7, "avg_hr": 158}, {"date": "2026-03-18", "sport": "Running", "duration_s": 867.0898289680481, "distance_m": 2501.7187625305305, "belastung": 23.2, "avg_hr": 166}, {"date": "2026-03-17", "sport": "Walking", "duration_s": 3176.971862912178, "distance_m": 4808.517894422279, "belastung": 19.2, "avg_hr": 105}, {"date": "2026-03-15", "sport": "Running", "duration_s": 2704.473107933998, "distance_m": 7540.7640023212825, "belastung": 48.9, "avg_hr": 148}, {"date": "2025-11-08", "sport": "TraditionalStrengthTraining", "duration_s": 4834.168999910355, "distance_m": null, "belastung": 43.3, "avg_hr": 119}, {"date": "2025-11-07", "sport": "TraditionalStrengthTraining", "duration_s": 4210.561000108719, "distance_m": null, "belastung": 31.2, "avg_hr": 112}, {"date": "2025-11-06", "sport": "Walking", "duration_s": 3130.4527720212936, "distance_m": 4810.244504034985, "belastung": 16.3, "avg_hr": 100}, {"date": "2025-11-05", "sport": "TraditionalStrengthTraining", "duration_s": 4236.736999988556, "distance_m": null, "belastung": 24.9, "avg_hr": 104}, {"date": "2025-11-04", "sport": "Other", "duration_s": 16289.579999923706, "distance_m": null, "belastung": 124.0, "avg_hr": 113}, {"date": "2025-11-03", "sport": "Walking", "duration_s": 3119.116000175476, "distance_m": null, "belastung": 19.4, "avg_hr": 106}, {"date": "2025-11-03", "sport": "TraditionalStrengthTraining", "duration_s": 4920.990000009537, "distance_m": null, "belastung": 37.5, "avg_hr": 113}, {"date": "2025-10-31", "sport": "Running", "duration_s": 2162.2847779989243, "distance_m": 5591.918500585947, "belastung": 44.4, "avg_hr": 153}, {"date": "2025-10-31", "sport": "Cycling", "duration_s": 1872.2300000190735, "distance_m": null, "belastung": 7.0, "avg_hr": 90}, {"date": "2025-10-30", "sport": "CrossTraining", "duration_s": 1991.6530001163483, "distance_m": null, "belastung": 21.9, "avg_hr": 127}, {"date": "2025-10-28", "sport": "CrossTraining", "duration_s": 3601.720999956131, "distance_m": null, "belastung": 49.3, "avg_hr": 136}, {"date": "2025-10-27", "sport": "Running", "duration_s": 2233.3570001125336, "distance_m": null, "belastung": 50.4, "avg_hr": 158}, {"date": "2025-10-27", "sport": "Running", "duration_s": 94.69400000572205, "distance_m": null, "belastung": 1.3, "avg_hr": 136}, {"date": "2025-10-27", "sport": "CrossTraining", "duration_s": 3966.4240000247955, "distance_m": null, "belastung": 40.4, "avg_hr": 124}, {"date": "2025-10-27", "sport": "Other", "duration_s": 1079.0199999809265, "distance_m": null, "belastung": 7.8, "avg_hr": 111}, {"date": "2025-10-25", "sport": "Walking", "duration_s": 3243.4790000915527, "distance_m": null, "belastung": 22.7, "avg_hr": 110}, {"date": "2025-10-24", "sport": "Running", "duration_s": 1782.1429998874664, "distance_m": null, "belastung": 37.6, "avg_hr": 155}, {"date": "2025-10-24", "sport": "Walking", "duration_s": 3124.1340000629425, "distance_m": null, "belastung": 16.8, "avg_hr": 101}, {"date": "2025-10-24", "sport": "Cycling", "duration_s": 2864.6233670711517, "distance_m": null, "belastung": 15.4, "avg_hr": 101}, {"date": "2025-10-21", "sport": "Running", "duration_s": 78.88800001144409, "distance_m": null, "belastung": 0.5, "avg_hr": 107}, {"date": "2025-10-21", "sport": "Running", "duration_s": 146.59599995613098, "distance_m": null, "belastung": 1.1, "avg_hr": 114}, {"date": "2025-10-20", "sport": "Walking", "duration_s": 3110.4400000572205, "distance_m": null, "belastung": 16.7, "avg_hr": 101}, {"date": "2025-10-13", "sport": "Running", "duration_s": 2484.335000038147, "distance_m": null, "belastung": 36.5, "avg_hr": 139}, {"date": "2025-10-13", "sport": "CrossTraining", "duration_s": 3083.106999874115, "distance_m": null, "belastung": 24.1, "avg_hr": 114}, {"date": "2025-10-11", "sport": "Running", "duration_s": 2618.7460000514984, "distance_m": null, "belastung": 44.2, "avg_hr": 145}, {"date": "2025-10-10", "sport": "Running", "duration_s": 1945.012433052063, "distance_m": 6009.33561655045, "belastung": 36.2, "avg_hr": 149}, {"date": "2025-10-10", "sport": "CrossTraining", "duration_s": 2700.7560000419617, "distance_m": null, "belastung": 24.8, "avg_hr": 120}, {"date": "2025-10-09", "sport": "CrossTraining", "duration_s": 5103.296999931335, "distance_m": null, "belastung": 53.3, "avg_hr": 125}, {"date": "2025-10-08", "sport": "Walking", "duration_s": 3190.308000087738, "distance_m": null, "belastung": 19.3, "avg_hr": 105}, {"date": "2025-10-07", "sport": "Running", "duration_s": 1965.8245329856873, "distance_m": 5519.530219129436, "belastung": 35.4, "avg_hr": 148}, {"date": "2025-10-07", "sport": "Running", "duration_s": 1980, "distance_m": null, "belastung": 35.8, "avg_hr": 148}, {"date": "2025-10-07", "sport": "CrossTraining", "duration_s": 1921.1870000362396, "distance_m": null, "belastung": 16.3, "avg_hr": 117}, {"date": "2025-10-07", "sport": "Cycling", "duration_s": 835.8729999065399, "distance_m": null, "belastung": 3.6, "avg_hr": 94}, {"date": "2025-10-06", "sport": "CrossTraining", "duration_s": 2327.625, "distance_m": null, "belastung": 23.7, "avg_hr": 124}, {"date": "2025-10-03", "sport": "Running", "duration_s": 186.8880000114441, "distance_m": null, "belastung": 1.8, "avg_hr": 121}, {"date": "2025-10-03", "sport": "Soccer", "duration_s": 4200, "distance_m": null, "belastung": 19.9, "avg_hr": 97}, {"date": "2025-10-03", "sport": "Cycling", "duration_s": 352.49900007247925, "distance_m": null, "belastung": 2.0, "avg_hr": 103}, {"date": "2025-10-03", "sport": "Soccer", "duration_s": 7678.1900000572205, "distance_m": null, "belastung": 45.1, "avg_hr": 104}, {"date": "2025-10-03", "sport": "CrossTraining", "duration_s": 1953.3429999351501, "distance_m": null, "belastung": 22.6, "avg_hr": 129}, {"date": "2025-10-02", "sport": "Running", "duration_s": 3300.5810000896454, "distance_m": null, "belastung": 52.0, "avg_hr": 142}, {"date": "2025-10-01", "sport": "Running", "duration_s": 1740, "distance_m": null, "belastung": 23.8, "avg_hr": 136}, {"date": "2025-10-01", "sport": "Running", "duration_s": 1740.0364609956741, "distance_m": 4726.374678062377, "belastung": 24.2, "avg_hr": 136}, {"date": "2025-10-01", "sport": "Cycling", "duration_s": 1392.767333984375, "distance_m": 2486.653870271717, "belastung": 5.0, "avg_hr": 89}, {"date": "2025-10-01", "sport": "CrossTraining", "duration_s": 2257.6710000038147, "distance_m": null, "belastung": 18.6, "avg_hr": 116}, {"date": "2025-09-30", "sport": "Running", "duration_s": 2235.8310000896454, "distance_m": null, "belastung": 32.1, "avg_hr": 138}, {"date": "2025-09-30", "sport": "Cycling", "duration_s": 1016.8460708856583, "distance_m": 1135.3506459428318, "belastung": 2.2, "avg_hr": 76}, {"date": "2025-09-30", "sport": "CrossTraining", "duration_s": 1142.6610000133514, "distance_m": null, "belastung": 4.1, "avg_hr": 89}, {"date": "2025-09-29", "sport": "Cycling", "duration_s": 847.6770000457764, "distance_m": null, "belastung": 4.0, "avg_hr": 97}, {"date": "2025-09-29", "sport": "CrossTraining", "duration_s": 3795.5259997844696, "distance_m": null, "belastung": 34.0, "avg_hr": 119}, {"date": "2025-09-28", "sport": "Running", "duration_s": 3173.371999979019, "distance_m": null, "belastung": 44.5, "avg_hr": 137}, {"date": "2025-09-28", "sport": "Cycling", "duration_s": 4431.3259999752045, "distance_m": null, "belastung": 14.8, "avg_hr": 87}, {"date": "2025-09-27", "sport": "Other", "duration_s": 2536.0499999523163, "distance_m": null, "belastung": 14.9, "avg_hr": 104}, {"date": "2025-09-27", "sport": "Soccer", "duration_s": 2069.0400002002716, "distance_m": null, "belastung": 21.6, "avg_hr": 125}, {"date": "2025-09-26", "sport": "CrossTraining", "duration_s": 7026.617000102997, "distance_m": null, "belastung": 91.7, "avg_hr": 134}, {"date": "2025-09-24", "sport": "Running", "duration_s": 480.983146071434, "distance_m": 1625.902918245242, "belastung": 10.8, "avg_hr": 159}, {"date": "2025-09-24", "sport": "CrossTraining", "duration_s": 4303.452999830246, "distance_m": null, "belastung": 52.2, "avg_hr": 131}, {"date": "2025-09-23", "sport": "Running", "duration_s": 2005.4389998912811, "distance_m": null, "belastung": 35.4, "avg_hr": 147}, {"date": "2025-09-22", "sport": "Running", "duration_s": 2211.617000102997, "distance_m": null, "belastung": 43.7, "avg_hr": 152}, {"date": "2025-09-22", "sport": "Soccer", "duration_s": 2186.039999961853, "distance_m": null, "belastung": 15.7, "avg_hr": 111}, {"date": "2025-09-22", "sport": "Soccer", "duration_s": 908.0199999809265, "distance_m": null, "belastung": 6.7, "avg_hr": 112}, {"date": "2025-09-22", "sport": "Soccer", "duration_s": 853.0099999904633, "distance_m": null, "belastung": 6.5, "avg_hr": 113}, {"date": "2025-09-22", "sport": "CrossTraining", "duration_s": 2979.0950000286102, "distance_m": null, "belastung": 27.4, "avg_hr": 120}, {"date": "2025-09-21", "sport": "Running", "duration_s": 4204.266000032425, "distance_m": null, "belastung": 71.0, "avg_hr": 145}, {"date": "2025-09-20", "sport": "Walking", "duration_s": 3255.6500000953674, "distance_m": null, "belastung": 20.9, "avg_hr": 107}, {"date": "2025-09-20", "sport": "CrossTraining", "duration_s": 3600.37700009346, "distance_m": null, "belastung": 56.8, "avg_hr": 142}, {"date": "2025-09-19", "sport": "Other", "duration_s": 3600, "distance_m": null, "belastung": 21.8, "avg_hr": 105}, {"date": "2025-09-19", "sport": "CrossTraining", "duration_s": 3047.572000026703, "distance_m": null, "belastung": 32.7, "avg_hr": 126}, {"date": "2025-09-18", "sport": "CrossTraining", "duration_s": 3913.893000125885, "distance_m": null, "belastung": 46.4, "avg_hr": 130}, {"date": "2025-09-17", "sport": "CrossTraining", "duration_s": 2173.7249999046326, "distance_m": null, "belastung": 18.4, "avg_hr": 117}, {"date": "2025-09-16", "sport": "Running", "duration_s": 4331.500666022301, "distance_m": 11851.244076460644, "belastung": 12.4, "avg_hr": 141}, {"date": "2025-09-15", "sport": "CrossTraining", "duration_s": 3301.305000066757, "distance_m": null, "belastung": 36.3, "avg_hr": 127}, {"date": "2025-09-15", "sport": "Swimming", "duration_s": 3705.0350000858307, "distance_m": null, "belastung": 73.2, "avg_hr": 152}, {"date": "2025-09-13", "sport": "Other", "duration_s": 3120, "distance_m": null, "belastung": 18.9, "avg_hr": 105}, {"date": "2025-09-13", "sport": "CrossTraining", "duration_s": 2185.728000164032, "distance_m": null, "belastung": 30.7, "avg_hr": 137}, {"date": "2026-08-15", "sport": "indoor_cycling", "duration_s": 4200, "distance_m": 31266.990234375, "belastung": 46.2, "avg_hr": 127}, {"date": "2026-08-12", "sport": "Running", "duration_s": 3610.633056640625, "distance_m": 11005.0400390625, "belastung": 68.3, "avg_hr": 150}, {"date": "2026-08-11", "sport": "indoor_cycling", "duration_s": 3000, "distance_m": 24210.990234375, "belastung": 41.1, "avg_hr": 136}, {"date": "2026-08-10", "sport": "Running", "duration_s": 2424.73193359375, "distance_m": 6407.009765625, "belastung": 32.4, "avg_hr": 135}, {"date": "2026-08-06", "sport": "Running", "duration_s": 2132.718994140625, "distance_m": 6007.8701171875, "belastung": 29.2, "avg_hr": 136}, {"date": "2026-08-05", "sport": "Running", "duration_s": 3334.885009765625, "distance_m": 10006.4501953125, "belastung": 63.1, "avg_hr": 150}, {"date": "2026-08-04", "sport": "indoor_cycling", "duration_s": 3900, "distance_m": 30560.990234375, "belastung": 38.7, "avg_hr": 123}, {"date": "2026-08-03", "sport": "Swimming", "duration_s": 2763.77197265625, "distance_m": 1733.160095214844, "belastung": 29.6, "avg_hr": 126}, {"date": "2026-08-03", "sport": "Swimming", "duration_s": 126.16600036621094, "distance_m": 1633.1700439453125, "belastung": null, "avg_hr": null}, {"date": "2026-08-02", "sport": "Running", "duration_s": 6053.05615234375, "distance_m": 17005.7109375, "belastung": 117.0, "avg_hr": 151}, {"date": "2026-08-01", "sport": "indoor_cycling", "duration_s": 4200, "distance_m": 31356, "belastung": 27.8, "avg_hr": 108}, {"date": "2026-07-30", "sport": "Swimming", "duration_s": 2808.887939453125, "distance_m": 2199.780029296875, "belastung": 32.5, "avg_hr": 129}, {"date": "2026-07-29", "sport": "Running", "duration_s": 3629.511962890625, "distance_m": 10304.4296875, "belastung": 70.2, "avg_hr": 151}, {"date": "2026-07-27", "sport": "Swimming", "duration_s": 3417.345947265625, "distance_m": 2333.10009765625, "belastung": 42.5, "avg_hr": 132}, {"date": "2026-07-26", "sport": "Running", "duration_s": 8843.4833984375, "distance_m": 21005.990234375, "belastung": 124.0, "avg_hr": 137}, {"date": "2026-07-25", "sport": "Walking", "duration_s": 3212.27197265625, "distance_m": 4812.0400390625, "belastung": 21.8, "avg_hr": 109}, {"date": "2026-07-25", "sport": "indoor_cycling", "duration_s": 3600, "distance_m": 27986.990234375, "belastung": 48.1, "avg_hr": 135}, {"date": "2026-07-25", "sport": "Swimming", "duration_s": 3457.652099609375, "distance_m": 2433.090087890625, "belastung": 47.4, "avg_hr": 136}, {"date": "2026-07-24", "sport": "Running", "duration_s": 2178.366943359375, "distance_m": 5804.1201171875, "belastung": 33.6, "avg_hr": 141}, {"date": "2026-07-24", "sport": "Walking", "duration_s": 3014.4150390625, "distance_m": 4803.60986328125, "belastung": 26.3, "avg_hr": 118}, {"date": "2026-07-24", "sport": "indoor_cycling", "duration_s": 3180, "distance_m": 24298.990234375, "belastung": 52.5, "avg_hr": 144}, {"date": "2026-07-23", "sport": "indoor_cycling", "duration_s": 3600, "distance_m": 26006, "belastung": 30.5, "avg_hr": 117}, {"date": "2026-07-23", "sport": "Walking", "duration_s": 3264.56396484375, "distance_m": 4833.83984375, "belastung": 18.6, "avg_hr": 103}, {"date": "2026-07-22", "sport": "Running", "duration_s": 3444.5029296875, "distance_m": 10304.0703125, "belastung": 68.1, "avg_hr": 152}, {"date": "2026-07-21", "sport": "Running", "duration_s": 3619.64501953125, "distance_m": 10504.7001953125, "belastung": 61.1, "avg_hr": 145}, {"date": "2026-07-19", "sport": "Walking", "duration_s": 7375.421875, "distance_m": 11457.41015625, "belastung": 32.7, "avg_hr": 95}, {"date": "2026-07-19", "sport": "Walking", "duration_s": 3083.56689453125, "distance_m": 4806.35986328125, "belastung": 14.6, "avg_hr": 97}, {"date": "2026-07-18", "sport": "Walking", "duration_s": 3471.324951171875, "distance_m": 5402.02978515625, "belastung": 18.6, "avg_hr": 101}, {"date": "2026-07-18", "sport": "indoor_cycling", "duration_s": 3180, "distance_m": 24937.990234375, "belastung": 42.5, "avg_hr": 135}, {"date": "2026-07-17", "sport": "Running", "duration_s": 3909.215087890625, "distance_m": 11196.91015625, "belastung": 67.6, "avg_hr": 146}, {"date": "2026-07-17", "sport": "Walking", "duration_s": 3657.84912109375, "distance_m": 5402.25, "belastung": 18.4, "avg_hr": 99}, {"date": "2026-07-16", "sport": "Swimming", "duration_s": 3073.43994140625, "distance_m": 2199.780029296875, "belastung": 46.3, "avg_hr": 140}, {"date": "2026-07-16", "sport": "Walking", "duration_s": 5781.43212890625, "distance_m": 8202.8603515625, "belastung": 30.1, "avg_hr": 100}, {"date": "2026-07-15", "sport": "Running", "duration_s": 4993.9677734375, "distance_m": 12505.169921875, "belastung": 63.6, "avg_hr": 133}, {"date": "2026-07-14", "sport": "Running", "duration_s": 4744.5859375, "distance_m": 12503.01953125, "belastung": 65.0, "avg_hr": 136}, {"date": "2026-07-13", "sport": "Swimming", "duration_s": 3676.09912109375, "distance_m": 2499.75, "belastung": 58.0, "avg_hr": 142}, {"date": "2026-07-13", "sport": "Walking", "duration_s": 1820.8570556640625, "distance_m": 1771.4699707031248, "belastung": 8.3, "avg_hr": 96}, {"date": "2026-07-12", "sport": "Walking", "duration_s": 3529.64111328125, "distance_m": 5301.4599609375, "belastung": 18.4, "avg_hr": 100}, {"date": "2026-07-11", "sport": "indoor_cycling", "duration_s": 5400, "distance_m": 41017.98828125, "belastung": 52.3, "avg_hr": 122}, {"date": "2026-07-11", "sport": "Walking", "duration_s": 3614.587890625, "distance_m": 5301.14013671875, "belastung": 20.6, "avg_hr": 103}, {"date": "2026-07-10", "sport": "Walking", "duration_s": 3076.85302734375, "distance_m": 4821.64013671875, "belastung": 24.1, "avg_hr": 114}, {"date": "2026-07-09", "sport": "Walking", "duration_s": 3160.114990234375, "distance_m": 4807.10009765625, "belastung": 13.1, "avg_hr": 93}, {"date": "2026-07-07", "sport": "Running", "duration_s": 3302.126953125, "distance_m": 8462.9404296875, "belastung": 54.5, "avg_hr": 144}, {"date": "2026-07-07", "sport": "indoor_cycling", "duration_s": 4200, "distance_m": 30672.990234375, "belastung": 63.2, "avg_hr": 140}, {"date": "2026-07-06", "sport": "TraditionalStrengthTraining", "duration_s": 4430.61279296875, "distance_m": null, "belastung": 35.6, "avg_hr": 115}, {"date": "2026-07-05", "sport": "Running", "duration_s": 2192.135009765625, "distance_m": 5009.75, "belastung": 24.1, "avg_hr": 127}, {"date": "2026-07-05", "sport": "Walking", "duration_s": 648.6220092773438, "distance_m": 1003.5999755859375, "belastung": 3.4, "avg_hr": 100}, {"date": "2026-07-04", "sport": "Running", "duration_s": 2100.373046875, "distance_m": 4190, "belastung": 26.1, "avg_hr": 132}, {"date": "2026-07-03", "sport": "indoor_cycling", "duration_s": 2100, "distance_m": 16722.990234375, "belastung": 20.9, "avg_hr": 123}, {"date": "2026-07-02", "sport": "Swimming", "duration_s": 3507.31591796875, "distance_m": 2533.080078125, "belastung": 56.6, "avg_hr": 143}, {"date": "2026-07-01", "sport": "Running", "duration_s": 2313.678955078125, "distance_m": 5004.72998046875, "belastung": 24.2, "avg_hr": 125}, {"date": "2026-06-30", "sport": "TraditionalStrengthTraining", "duration_s": 2670.830078125, "distance_m": null, "belastung": 14.3, "avg_hr": 101}, {"date": "2026-06-29", "sport": "Swimming", "duration_s": 3563.157958984375, "distance_m": 2699.72998046875, "belastung": 72.0, "avg_hr": 153}, {"date": "2026-06-28", "sport": "indoor_cycling", "duration_s": 1800, "distance_m": 12484.990234375, "belastung": 14.5, "avg_hr": 115}, {"date": "2026-06-27", "sport": "indoor_cycling", "duration_s": 1802, "distance_m": 14358.3603515625, "belastung": 19.3, "avg_hr": 126}, {"date": "2026-06-25", "sport": "strength_training", "duration_s": 1989, "distance_m": 0, "belastung": 15.6, "avg_hr": 114}, {"date": "2026-06-25", "sport": "indoor_rowing", "duration_s": 555, "distance_m": 1558, "belastung": 10.5, "avg_hr": 150}, {"date": "2026-06-24", "sport": "Cycling", "duration_s": 2100, "distance_m": 15897, "belastung": 19.8, "avg_hr": 121}, {"date": "2026-06-22", "sport": "TraditionalStrengthTraining", "duration_s": 3626, "distance_m": null, "belastung": 26.1, "avg_hr": 111}, {"date": "2026-06-22", "sport": "indoor_rowing", "duration_s": 876, "distance_m": 2076.989990234375, "belastung": 9.9, "avg_hr": 128}, {"date": "2026-09-04", "sport": "LAP_SWIMMING", "duration_s": 1860, "distance_m": 1600, "belastung": 32.9, "avg_hr": 147}, {"date": "2026-09-04", "sport": "TREADMILL_RUNNING", "duration_s": 1500, "distance_m": 3697.48, "belastung": 23.1, "avg_hr": 141}, {"date": "2026-09-01", "sport": "INDOOR_CYCLING", "duration_s": 7207, "distance_m": 78107.67, "belastung": 96.4, "avg_hr": 135}, {"date": "2026-08-31", "sport": "LAP_SWIMMING", "duration_s": 1417, "distance_m": 1200, "belastung": 19.9, "avg_hr": 137}, {"date": "2026-08-31", "sport": "TREADMILL_RUNNING", "duration_s": 1507, "distance_m": 4268.39, "belastung": 23.2, "avg_hr": 141}, {"date": "2026-08-29", "sport": "LAP_SWIMMING", "duration_s": 2671, "distance_m": 2000, "belastung": 45.1, "avg_hr": 145}, {"date": "2026-08-27", "sport": "WALKING", "duration_s": 944, "distance_m": 1480.67, "belastung": 5.1, "avg_hr": 101}, {"date": "2026-08-27", "sport": "LAP_SWIMMING", "duration_s": 1968, "distance_m": 1500, "belastung": 24.5, "avg_hr": 132}, {"date": "2026-08-27", "sport": "WALKING", "duration_s": 1004, "distance_m": 1496.12, "belastung": 5.2, "avg_hr": 100}, {"date": "2026-08-26", "sport": "WALKING", "duration_s": 4683, "distance_m": 7654.6, "belastung": 27.5, "avg_hr": 104}, {"date": "2026-08-26", "sport": "LAP_SWIMMING", "duration_s": 3054, "distance_m": 2400, "belastung": 38.9, "avg_hr": 133}, {"date": "2026-08-25", "sport": "ROAD_BIKING", "duration_s": 3500, "distance_m": 24481.8, "belastung": 61.9, "avg_hr": 147}, {"date": "2026-08-25", "sport": "LAP_SWIMMING", "duration_s": 1855, "distance_m": 1466.52, "belastung": 32.8, "avg_hr": 147}, {"date": "2026-08-24", "sport": "RUNNING", "duration_s": 1832, "distance_m": 4604.8, "belastung": 26.5, "avg_hr": 138}, {"date": "2026-08-18", "sport": "LAP_SWIMMING", "duration_s": 1553, "distance_m": 999.9, "belastung": 28.7, "avg_hr": 149}, {"date": "2026-08-17", "sport": "ROAD_BIKING", "duration_s": 3112, "distance_m": 24314.86, "belastung": 43.6, "avg_hr": 137}], "running": {"week_km": 0, "year_km": 560.2}}</script>
+<script>
+(function(){
+"use strict";
+const DATA = JSON.parse(document.getElementById('page-data').textContent);
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const root = document.documentElement;
+const forced = root.getAttribute('data-stand');
+
+function fmtMinSec(s){ if(s==null) return "–"; const m=Math.floor(s/60), sec=Math.round(s%60); return m+":"+String(sec).padStart(2,'0'); }
+function fmtPaceKm(s){ return fmtMinSec(s)+"/km"; }
+function fmtHM(s){ if(s==null) return "–"; const h=Math.floor(s/3600), m=Math.floor((s%3600)/60); return h+"h "+m+"min"; }
+function loadColor(v){
+  v = Math.max(0, Math.min(100, v));
+  const stops = [[0,[173,159,246]],[45,[175,60,254]],[100,[190,12,15]]];
+  let a=stops[0], b=stops[stops.length-1];
+  for(let i=0;i<stops.length-1;i++){ if(v>=stops[i][0] && v<=stops[i+1][0]){ a=stops[i]; b=stops[i+1]; break; } }
+  const t = (v-a[0])/(b[0]-a[0]||1);
+  const c = a[1].map((c0,i)=> Math.round(c0 + (b[1][i]-c0)*t));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+
+document.getElementById('stampline').textContent = DATA.meta.n_activities + ' Einheiten · Stand ' + DATA.meta.period_end.split('-').reverse().join('.');
+
+// ---------- Reveal on scroll ----------
+const sections = document.querySelectorAll('section');
+if(reduced || forced){
+  sections.forEach(s=>s.classList.add('in'));
+} else {
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+  }, {threshold:.15});
+  sections.forEach(s=>io.observe(s));
+}
+
+// ---------- Expand/collapse ----------
+function bindExpand(triggerId, rowId){
+  const trig = document.getElementById(triggerId), row = document.getElementById(rowId);
+  if(!trig||!row) return;
+  trig.addEventListener('click', ()=>{
+    const willOpen = !row.classList.contains('open');
+    document.querySelectorAll('.expand-row.open').forEach(r=>{ if(r!==row) r.classList.remove('open'); });
+    row.classList.toggle('open', willOpen);
+  });
+}
+[['last-load-card','exp-load'],['tile-dist','exp-dist'],['tile-pace','exp-pace'],['tile-hr','exp-hr'],
+ ['open-fitness','exp-fitness'],['open-band','exp-band'],['open-zones','exp-zones'],
+ ['open-coach','exp-coach'],['open-bests','exp-bests'],['open-prev','exp-prev']].forEach(p=>bindExpand(p[0],p[1]));
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') document.querySelectorAll('.expand-row.open').forEach(r=>r.classList.remove('open')); });
+
+// click feedback
+document.querySelectorAll('.tappable').forEach(el=>{
+  el.addEventListener('pointerdown', ()=>{ if(!reduced){ el.style.transform='scale(.985)'; setTimeout(()=>el.style.transform='',150);} });
+});
+
+// ---------- count-up ----------
+function countUp(el, target, decimals){
+  if(reduced || forced){ el.textContent = target.toFixed(decimals); return; }
+  const dur=550, start=performance.now();
+  function step(now){
+    const p = Math.min(1,(now-start)/dur);
+    const eased = 1-Math.pow(1-p,3);
+    el.textContent = (target*eased).toFixed(decimals);
+    if(p<1) requestAnimationFrame(step); else el.textContent = target.toFixed(decimals);
+  }
+  requestAnimationFrame(step);
+}
+
+// =========================================================
+// SECTION 1: Der letzte Lauf
+// =========================================================
+const lr = DATA.last_run;
+document.getElementById('last-name').textContent = lr.name;
+const kindText = "Ruhiger Dauerlauf (Ø-Puls unter deiner Marathonzone)";
+document.getElementById('last-meta').textContent = lr.date.split('-').reverse().join('.') + ' · ' + kindText;
+
+const loadCard = document.getElementById('last-load-card');
+loadCard.style.background = loadColor(lr.belastung);
+countUp(document.getElementById('last-load-num'), lr.belastung, 0);
+
+document.getElementById('v-dist').innerHTML = (lr.distance_m/1000).toFixed(2)+'<span style="font-size:14px;color:var(--tx2)"> km</span>';
+document.getElementById('v-pace').innerHTML = fmtMinSec(lr.avg_pace_s_km)+'<span style="font-size:14px;color:var(--tx2)"> /km</span>';
+document.getElementById('v-hr').innerHTML = lr.avg_hr+'<span style="font-size:14px;color:var(--tx2)"> bpm</span>';
+
+document.getElementById('panel-load').innerHTML = `
+  <div class="formula">TRIMP = Σ [ hr_i · 0,64 · e^(1,92·hr_i) ] / 60,  hr_i = (HF−${DATA.athlete.rhr})/(${DATA.athlete.hrmax_measured}−${DATA.athlete.rhr})</div>
+  Für diese Einheit über die zwei Runden gerechnet (Ø-Puls 138 über 25:00, 140 über 5:31): TRIMP ≈ ${lr.trimp}.<br>
+  Anker (95. Perzentil deiner Tages-TRIMP, mind. 40) = ${DATA.athlete.anchor_trimp}.<br>
+  Belastung = 100 × ${lr.trimp} / ${DATA.athlete.anchor_trimp} = <b>${lr.belastung}</b>.`;
+
+document.getElementById('panel-dist').innerHTML = `
+  <table class="zonetable">
+  ${lr.splits.map(s=>`<tr><td>km ${s.km}${s.partial_m?` (${(s.partial_m/1000).toFixed(2)} km)`:''}</td><td>${fmtMinSec(s.durationSec)}</td><td>Ø ${s.avgHr} bpm</td></tr>`).join('')}
+  </table>
+  <div style="margin-top:8px;color:var(--tx2);font-size:13px;">GAP (steigungsbereinigt) nicht ausgewiesen: Zonen-Splits liegen als Rundenmittel vor, keine Sekunde-für-Sekunde-Höhenreihe für dieses Fenster eingebettet.</div>`;
+
+document.getElementById('panel-pace').innerHTML = `
+  Mittleres Tempo: ${fmtMinSec(lr.avg_pace_s_km)}/km über ${(lr.distance_m/1000).toFixed(2)} km in ${fmtMinSec(lr.duration_s)} (Bewegungszeit).<br>
+  Verstrichene Zeit: ${fmtMinSec(lr.elapsed_s)} — die Differenz von ${lr.elapsed_s-lr.duration_s}s ist eine Pause mitten im Lauf.`;
+
+document.getElementById('panel-hr').innerHTML = `
+  Ø ${lr.avg_hr} bpm, höchster gehaltener Wert ${lr.max_hr} bpm.<br>
+  Zeit ab Zone 3 (≥70 % von ${DATA.athlete.hrmax_measured}): über weite Strecken, siehe zweite Runde.<br>
+  Eingeordnet als ruhiger Dauerlauf, weil der Ø-Puls (138) unterhalb deiner Marathon-Pace-Zone liegt.<br>
+  <i>Eigene Notiz von dir zu dieser Einheit: „${lr.note}"</i>`;
+
+// last-run chart from 5 splits + 2 laps (only resolution actually held for this view)
+(function(){
+  const svg = document.getElementById('chart-last');
+  const W=680,H=160,pad=10;
+  const cum = [0]; let t=0;
+  lr.splits.forEach(s=>{ t+=s.durationSec; cum.push(t); });
+  const hrs = [lr.splits[0].avgHr, ...lr.splits.map(s=>s.avgHr)];
+  const maxT = cum[cum.length-1];
+  const minHr = Math.min(...hrs)-5, maxHr = Math.max(...hrs)+5;
+  const x = t=> pad + (W-2*pad)*(t/maxT);
+  const y = h=> H-pad - (H-2*pad)*((h-minHr)/(maxHr-minHr));
+  let path = cum.map((t,i)=> (i===0?'M':'L')+x(t)+','+y(hrs[i])).join(' ');
+  svg.innerHTML = `<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>`;
+})();
+
+// =========================================================
+// SECTION 2: Fitness
+// =========================================================
+const d = DATA.daily;
+const todayFit = d.fitness[d.fitness.length-1];
+const fit7ago = d.fitness[d.fitness.length-8];
+countUp(document.getElementById('fit-num'), todayFit, 1);
+const delta = todayFit-fit7ago;
+document.getElementById('fit-delta').textContent = (delta>=0?'+':'')+delta.toFixed(1)+' über 7 Tage';
+
+(function(){
+  const svg = document.getElementById('chart-fitness');
+  const W=680,H=160,pad=8;
+  const n = d.fitness.length;
+  const maxF = Math.max(...d.fitness)*1.15;
+  const x = i=> pad + (W-2*pad)*(i/(n-1));
+  const y = v=> H-pad - (H-2*pad)*(v/maxF);
+  let path = d.fitness.map((v,i)=> (i===0?'M':'L')+x(i)+','+y(v)).join(' ');
+  const areaPath = path + ` L${x(n-1)},${H-pad} L${x(0)},${H-pad} Z`;
+  const todayY = y(todayFit);
+  let svgHtml = `<path d="${areaPath}" fill="var(--surface)"/>`;
+  svgHtml += `<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2"/>`;
+  svgHtml += `<line x1="${pad}" y1="${todayY}" x2="${W-pad}" y2="${todayY}" stroke="var(--tx3)" stroke-width="1" stroke-dasharray="3,3"/>`;
+  svgHtml += `<circle cx="${x(n-1)}" cy="${todayY}" r="4" fill="var(--accent)"/>`;
+  svg.innerHTML = svgHtml;
+  // navigator bars
+  const bars = document.createElement('div');
+  const barsWrap = document.querySelector('#s-fitness');
+  const maxLoad = Math.max(...d.load,1);
+  let barsHtml = '<div style="display:flex;gap:1px;height:36px;align-items:flex-end;margin-top:6px;">';
+  const step = Math.max(1, Math.floor(n/366));
+  for(let i=0;i<n;i+=step){
+    const h = Math.max(1, 36*(d.load[i]/maxLoad));
+    barsHtml += `<div style="flex:1;background:var(--surface);height:${h}px;"></div>`;
+  }
+  barsHtml += '</div>';
+  document.getElementById('chart-fitness').insertAdjacentHTML('afterend', barsHtml);
+})();
+
+const months = ['Sep','Okt','Nov','Dez','Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep'];
+document.getElementById('fit-months').innerHTML = months.map(m=>`<span>${m}</span>`).join('');
+
+document.getElementById('panel-fitness').innerHTML = `
+  <div class="formula">Fitness(t) = Fitness(t−1) + (Last(t) − Fitness(t−1)) / 42
+Ermüdung(t) = Ermüdung(t−1) + (Last(t) − Ermüdung(t−1)) / 7
+Frische(t) = Fitness(t−1) − Ermüdung(t−1)</div>
+  Fitness heute: <b>${todayFit.toFixed(1)}</b> · Ermüdung heute: <b>${d.fatigue[d.fatigue.length-1].toFixed(1)}</b> · Frische heute: <b>${d.fresh[d.fresh.length-1].toFixed(1)}</b><br><br>
+  Die ersten 42 Tage der Reihe (bis Ende Oktober 2025) sind Einschwingen, kein Zustand.<br>
+  ${DATA.no_record_days} von 366 Tagen im Jahr tragen keinerlei Aufzeichnung – am auffälligsten die Lücke vom ${DATA.gap_period.start.split('-').reverse().join('.')} bis ${DATA.gap_period.end.split('-').reverse().join('.')} (${DATA.gap_period.days} Tage am Stück). Das ist wahrscheinlich eine Aufzeichnungslücke (Apple-Health-Ruhepuls setzt exakt in diesem Fenster aus), keine echte Trainingspause – die Kurve kann das nicht unterscheiden und zeigt in dieser Zeit einfach Last null.<br><br>
+  Diese Zahlen haben dieselbe Form wie die eines Bezahlanbieters, aber nicht dieselbe Skala.`;
+
+// =========================================================
+// SECTION 3: Wochenbelastung
+// =========================================================
+const tw = DATA.this_week;
+const dayLetters = ['M','D','M','D','F','S','S'];
+const maxDay = Math.max(...tw.map(dd=>dd.activities.reduce((s,a)=>s+a.duration_s,0)),1);
+document.getElementById('wk-days').innerHTML = tw.map(dd=>{
+  const secs = dd.activities.reduce((s,a)=>s+a.duration_s,0);
+  const h = Math.max(2, 56*(secs/maxDay));
+  return `<div class="bar" style="height:${h}px;"></div>`;
+}).join('');
+
+const ws = DATA.week_status;
+document.getElementById('wk-sum').textContent = ws.load.toFixed(0);
+const statusLabel = ws.status==='ueber' ? 'über dem Band' : (ws.status==='unter' ? 'unter dem Band' : 'im Band');
+document.getElementById('wk-status').textContent = statusLabel;
+
+(function(){
+  const svg = document.getElementById('chart-weeks');
+  const W=680,H=110,pad=10;
+  const chart = DATA.weekly_chart;
+  const n = chart.length;
+  const maxV = Math.max(...chart.map(c=>Math.max(c.load,c.band)))*1.15;
+  const x = i=> pad + (W-2*pad)*(i/(n-1));
+  const y = v=> H-pad - (H-2*pad)*(v/maxV);
+  const bandPath = chart.map((c,i)=>(i===0?'M':'L')+x(i)+','+y(c.band)).join(' ')
+     + ' L'+x(n-1)+','+(H-pad)+' L'+x(0)+','+(H-pad)+' Z';
+  let html = `<path d="${bandPath}" fill="var(--surface)"/>`;
+  chart.forEach((c,i)=>{
+    if(i<n-1) html += `<circle cx="${x(i)}" cy="${y(c.load)}" r="3" fill="none" stroke="var(--tx3)" stroke-width="1.5"/>`;
+  });
+  const lastX = x(n-1);
+  html += `<line x1="${lastX}" y1="${H-pad}" x2="${lastX}" y2="${y(chart[n-1].load)}" stroke="var(--accent)" stroke-width="1.5"/>`;
+  html += `<circle cx="${lastX}" cy="${y(chart[n-1].load)}" r="5" fill="var(--accent)"/>`;
+  svg.innerHTML = html;
+})();
+
+document.getElementById('panel-band').innerHTML = `
+  Summe dieser Woche: <b>${ws.load.toFixed(1)}</b> (Mo–So, Summe der Tages-Belastung).<br>
+  Schnitt der drei Wochen davor: <b>${ws.band_avg.toFixed(1)}</b>.<br>
+  Band: 0,82× bis 1,18× dieses Schnitts. Diese Woche liegt bei ${(ws.load/ws.band_avg*100).toFixed(0)} % davon → <b>${statusLabel}</b>.`;
+
+// =========================================================
+// SECTION 4: Zonen
+// =========================================================
+const hz = DATA.hr_zone_pct;
+const topZone = Object.entries(hz).sort((a,b)=>b[1]-a[1])[0];
+document.getElementById('zone-headline').textContent = `${topZone[1]}% deiner Zeit liegen in ${topZone[0]==='Z1'?'unten':topZone[0]}`;
+
+const zoneColors = {Z1:'var(--hr1)',Z2:'var(--hr2)',Z3:'var(--hr3)',Z4:'var(--hr4)',Z5:'var(--hr5)'};
+const hrHours = DATA.hr_zones;
+const maxH = Math.max(...Object.values(hrHours),0.01);
+document.getElementById('zone-bars').innerHTML = ['Z1','Z2','Z3','Z4','Z5'].map(z=>{
+  const h = hrHours[z]||0;
+  if(h<=0) return '';
+  const w = 100*h/maxH;
+  return `<div class="zonebar-row"><div class="zone-mark">${z}</div>
+    <div class="zonebar-track"><div class="zonebar-fill" data-w="${w}" style="background:${zoneColors[z]}"></div></div>
+    <div class="zone-time">${h.toFixed(0)} h</div></div>`;
+}).join('');
+requestAnimationFrame(()=> setTimeout(()=>{
+  document.querySelectorAll('.zonebar-fill').forEach((el,i)=> setTimeout(()=>{ el.style.width = el.dataset.w+'%'; }, reduced?0:i*110));
+},50));
+
+const pz = DATA.pace_zones;
+document.getElementById('panel-zones').innerHTML = `
+  Zeitraum: ${DATA.meta.period_start.split('-').reverse().join('.')} – ${DATA.meta.period_end.split('-').reverse().join('.')}, gegen die unten stehenden, aus dem gemessenen Maximum abgeleiteten Pulszonen (kein gespeicherter Schwellenpuls gefunden).
+  <table class="zonetable">
+  <tr><td>Z1 &lt;60%</td><td>&lt;${Math.round(DATA.athlete.hrmax_measured*0.6)} bpm</td><td>${(hrHours.Z1||0).toFixed(1)} h</td><td>${(hz.Z1||0).toFixed(0)}%</td></tr>
+  <tr><td>Z2 60–70%</td><td>${Math.round(DATA.athlete.hrmax_measured*0.6)}–${Math.round(DATA.athlete.hrmax_measured*0.7)}</td><td>${(hrHours.Z2||0).toFixed(1)} h</td><td>${(hz.Z2||0).toFixed(0)}%</td></tr>
+  <tr><td>Z3 70–80%</td><td>${Math.round(DATA.athlete.hrmax_measured*0.7)}–${Math.round(DATA.athlete.hrmax_measured*0.8)}</td><td>${(hrHours.Z3||0).toFixed(1)} h</td><td>${(hz.Z3||0).toFixed(0)}%</td></tr>
+  <tr><td>Z4 80–90%</td><td>${Math.round(DATA.athlete.hrmax_measured*0.8)}–${Math.round(DATA.athlete.hrmax_measured*0.9)}</td><td>${(hrHours.Z4||0).toFixed(1)} h</td><td>${(hz.Z4||0).toFixed(0)}%</td></tr>
+  <tr><td>Z5 ≥90%</td><td>≥${Math.round(DATA.athlete.hrmax_measured*0.9)}</td><td>${(hrHours.Z5||0).toFixed(1)} h</td><td>${(hz.Z5||0).toFixed(0)}%</td></tr>
+  </table>
+  <div style="margin-top:14px;">Tempozonen (Daniels, VDOT ${DATA.athlete.vdot} aus Garmins gemessenem VO2max vom ${DATA.athlete.vdot_date}):</div>
+  <table class="zonetable">
+  <tr><td>Locker (E)</td><td>${pz.E.label}</td><td>${pz.E.basis}</td></tr>
+  <tr><td>Marathon (M)</td><td>${pz.M.label}</td><td>${pz.M.basis}</td></tr>
+  <tr><td>Schwelle (T)</td><td>${pz.T.label}</td><td>${pz.T.basis}</td></tr>
+  <tr><td>Intervall (I)</td><td>${pz.I.label}</td><td>${pz.I.basis}</td></tr>
+  <tr><td>Wiederholung (R)</td><td>${pz.R.label}</td><td>${pz.R.basis}</td></tr>
+  </table>
+  <div style="margin-top:10px;">${DATA.easy_pct}% deiner gelaufenen Kilometer lagen im lockeren Bereich oder langsamer.</div>
+  <div style="margin-top:10px;">${DATA.athlete.hrmax_note}</div>`;
+
+// =========================================================
+// SECTION 5: Coach
+// =========================================================
+document.getElementById('coach-teaser').textContent =
+  "Deine Wochenbelastung kennt kaum ein ruhiges Dazwischen. Sie springt immer wieder um 30 bis fast 700 Prozent nach oben – zuletzt in der Woche direkt nach deiner Rückkehr von einer Achillessehnenreizung.";
+
+document.getElementById('panel-coach').innerHTML = `
+  <b>Deine Wochenbelastung springt chronisch, statt stufenweise zu steigen — und der jüngste Sprung fiel direkt in die Woche nach einer Verletzungspause.</b><br><br>
+  <ul style="padding-left:18px;margin:8px 0;">
+    <li>08.–14.09.2025 → 15.–21.09.2025: Wochenbelastung 49,5 → 389,9 (+687%)</li>
+    <li>09.–15.03.2026 → 16.–22.03.2026: 48,9 → 193,9 (+296%), direkt nach 123 Tagen ohne jede Aufzeichnung</li>
+    <li>17.–23.08.2026 → 24.–30.08.2026: 72,4 → 267,5 (+270%), die Woche direkt nach "Wiedereinstieg nach Achillessehnenreizung"</li>
+  </ul>
+  Konkret für die kommende Woche: Steig nach der aktuellen Pause mit höchstens dem 1,2-Fachen deiner letzten Trainingswoche ein (~235 Belastungspunkte), verteilt auf mindestens 3 Tage – nicht wieder Rad und Schwimmen am selben Tag wie am 25.08.`;
+
+// =========================================================
+// SECTION 6: Bestleistungen
+// =========================================================
+const b = DATA.bests;
+const emblems = {"1":"●","5":"◆","10":"▲","16.09":"■","21.0975":"★","42.195":"⬟"};
+const labels = {"1":"1 km","5":"5 km","10":"10 km","16.09":"10 Meilen","21.0975":"Halbmarathon","42.195":"Marathon"};
+const order = ["10","16.09","21.0975","42.195"];
+document.getElementById('pr-list').innerHTML = order.filter(k=>b[k]).map(k=>{
+  const [t,dt] = b[k];
+  return `<div class="pr-row"><span class="pr-emblem">${emblems[k]}</span><span class="pr-dist">${labels[k]}</span><span class="pr-time">(${fmtMinSec(t)})</span></div>`;
+}).join('');
+
+document.getElementById('panel-bests').innerHTML = `
+  <table class="zonetable">
+  ${Object.keys(labels).filter(k=>b[k]).map(k=>{
+    const [t,dt,id] = b[k];
+    const paceKm = k==="42.195"?42.195:k==="21.0975"?21.0975:k==="16.09"?16.09:parseFloat(k);
+    return `<tr><td>${labels[k]}</td><td>${fmtMinSec(t)}</td><td>${fmtMinSec(t/paceKm)}/km</td><td>${dt.split('-').reverse().join('.')}</td></tr>`;
+  }).join('')}
+  ${!b["42.195"]?'<tr><td>Marathon</td><td colspan="3">keine Einheit mit ausreichender Distanz im Datenbestand</td></tr>':''}
+  </table>
+  <div style="margin-top:8px;color:var(--tx2);font-size:13px;">Näherungsweise aus Kilometer-Splits berechnet (1-km-Auflösung, gleitendes Fenster über die Splits – nicht die echte Sekundenreihe).</div>
+  <div style="margin-top:14px;">Vorhersage Halbmarathon: Riegel ${DATA.predictions.hm.riegel} · Daniels/System ${DATA.predictions.hm.daniels_system}</div>
+  <div>Vorhersage Marathon: Riegel ${DATA.predictions.marathon.riegel} · Daniels/System ${DATA.predictions.marathon.daniels_system}</div>
+  <div style="margin-top:8px;color:var(--tx2);font-size:13px;">Die Differenz zwischen beiden Wegen ist keine Panne, sondern die ehrliche Spanne.</div>`;
+
+// =========================================================
+// SECTION 7: Diese Woche
+// =========================================================
+document.getElementById('tw-km').textContent = DATA.running.week_km.toFixed(1)+' km';
+document.getElementById('tw-year').textContent = DATA.running.year_km.toFixed(0)+' km über 12 Monate';
+
+function bubbleHtml(dayObj, dayLetter){
+  if(!dayObj.activities.length) return `<div class="bubblecol"><div class="bubble empty"></div><div class="daylabel">${dayLetter}</div></div>`;
+  const bubbles = dayObj.activities.map(a=>{
+    const isRun = /run|laufen|treadmill/i.test(a.sport);
+    const size = Math.max(14, Math.min(40, 14+a.duration_s/120));
+    const val = a.distance_m ? (a.distance_m/1000).toFixed(1) : Math.round(a.duration_s/60);
+    return `<div class="bubble" style="width:${size}px;height:${size}px;background:${isRun?'var(--run)':'var(--other)'};color:${isRun?'var(--run-tx)':'var(--other-tx)'};font-size:${size>26?11:9}px;">${val}</div>`;
+  }).join('');
+  return `<div class="bubblecol">${bubbles}<div class="daylabel">${dayLetter}</div></div>`;
+}
+document.getElementById('tw-bubbles').innerHTML = tw.map((d,i)=>bubbleHtml(d,dayLetters[i])).join('');
+
+document.getElementById('panel-prev').innerHTML = DATA.prev7.map(w=>{
+  const bubbles = w.days.map((d,i)=>bubbleHtml(d,dayLetters[i])).join('');
+  return `<div class="prevweek"><div class="hd"><span>${w.week_start.split('-').reverse().join('.')} – ${w.week_end.split('-').reverse().join('.')}</span><span>${w.run_km.toFixed(1)} km Laufen</span></div>
+  <div class="bubblefield" style="height:70px;">${bubbles}</div></div>`;
+}).join('');
+
+if(forced==='alles'){ document.querySelectorAll('.expand-row').forEach(r=>r.classList.add('open')); }
+
+})();
+</script>

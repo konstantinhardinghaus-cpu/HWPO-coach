@@ -1,0 +1,7 @@
+cache/
+*.json
+!page_data.example.json
+.venv/
+venv/
+*.log
+.env
